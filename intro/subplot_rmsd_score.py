@@ -8,6 +8,7 @@ import math
 from scipy.spatial import distance
 import numpy as np
 import Bio.PDB
+from sklearn import preprocessing
 
 
 def read_pfam_align():
@@ -58,6 +59,21 @@ def select_CA_align(pdb_path, start, end):
 
 # Global variables (Ugly)
 ca_align_list = []
+
+
+def f(x,y,z, **kwargs):
+    ax = sns.pointplot(x,y,**kwargs)
+    ax.axhline(5, alpha=0.5, color='grey')
+    for i in range(len(x)):
+        ax.annotate('{:6.2f}'.format(z.values[i]), xy=(i, z.values[i]),fontsize=8,
+                    color=kwargs.get("color","k"),
+                    bbox=dict(pad=.9,alpha=1, fc='w',color='none'),
+                    va='center', ha='center',weight='bold')
+
+def facet_scatter(x, y, c, **kwargs):
+    """Draw scatterplot with point colors from a faceted DataFrame columns."""
+    kwargs.pop("color")
+    plt.scatter(x, y, c=c, **kwargs)
 
 
 if __name__ == '__main__':
@@ -119,39 +135,59 @@ if __name__ == '__main__':
     # train.set_index('pdb_filename', inplace=True)
     train.to_csv("test_out.csv", sep=';', encoding='utf-8')
 
-    # for file in os.listdir("."):
-    #     if file.endswith(".pdb") and 'minimized' not in file:
-    #         # X = train.loc[(train['pdb_filename'].split('_')[0] == file.split('_')[0])].copy()
-    #
-    #         X = train[train['pdb_filename'].str.contains(file.split('_')[0])]
-    #         X.sort_values(by=['rmsd_init'])
-    #
-    #         # g = sns.FacetGrid(X, row='rmsd_init', col='score_init')
-    #         # g.map(plt.scatter, "x", "y")
-    #         ac = sns.lineplot(x="rmsd_init", y="score_init", markers="o", data=X)
-    #         ac.set(xlabel='RMSD (A)', ylabel='Score')
-    #         plt.title('Initial Rosetta score')
-    #         plt.show()
-    #         print("fin test")
-
-    # file_list = [f for f in os.listdir(".") if f.endswith(".pdb") and 'minimized' not in f]
-
-    # melted = train.melt(id_vars=['pdb_filename', 'rmsd_init'], value_vars=['score_init'])
-    # g = sns.FacetGrid(melted, col='pdb_filename', hue='pdb_filename', row='variable', sharey='row', margin_titles=True)
-    # g.map(plt.plot, 'rmsd_init', 'value')
-    # plt.show()
-
     # train['pdbid'] = train["pdb_filename"].str.split('_')[0]
     train['pdbid'] = train.pdb_filename.str[:4]
     # new data frame with split value columns
     new = train["pdb_filename"].str.split("_", n=7, expand=True)
     train['amplitude'] = new[6]
-    train = train.groupby(['pdbid']).sor
+    train['amplitude'] = train['amplitude'].astype(float)
 
-    g = sns.FacetGrid(train, col="pdbid", row='variable', height=1.5, hue='pdbid', sharey='row', margin_titles=True)
-    g = g.map(plt.plot, "rmsd_init", "score_init", marker=".")
+    column_names_to_normalize = ['score_init']
+
+    min_max_scaler = preprocessing.MinMaxScaler()
+    x = train[column_names_to_normalize].values
+    x_scaled = min_max_scaler.fit_transform(x)
+    df_temp = pd.DataFrame(x_scaled, columns=column_names_to_normalize, index=train.index)
+    train[column_names_to_normalize] = df_temp
+
+    col_name = ['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax', 'pdbid', 'amplitude']
+
+    train = train.loc[(train['pdbid'] != "5isv")]
+    train = train.loc[(train['pdbid'] != "2cns")]
+
+    grouped = train.groupby(["pdbid"])
+    train = grouped.apply(lambda x: x.sort_values(["amplitude"], ascending = True)).reset_index(drop=True)
+
+    # sns.set_style("whitegrid", {'axes.grid': False, 'axes.edgecolor': 'none'})
+
+    # h = sns.FacetGrid(train, col="pdbid", hue='pdbid', col_wrap=7, sharey='row', sharex='col', margin_titles=True)
+    # h = sns.FacetGrid(train, col="pdbid", palette = 'seismic', gridspec_kws={"hspace":0.4}, sharey=False, sharex=True)
+    h = sns.FacetGrid(train, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
+    # h.map(f, "amplitude", "score_init", "rmsd_init", scale=.7, markers="")
+
+    vmin = train['rmsd_relax'].min()
+    vmax = train['rmsd_relax'].max()
+    # vmin = train['rmsd_init'].min()
+    # vmax = train['rmsd_init'].max()
+    cmap = sns.diverging_palette(240, 10, l=65, center="dark", as_cmap=True)
+
+    # h.map(plt.plot, "amplitude", "score_relax", marker="o")
+    h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
+
+    # Make space for the colorbar
+    # h.fig.subplots_adjust(right=.92)
+    # plt.tight_layout()
+
+    # Define a new Axes where the colorbar will go
+    # cax = h.fig.add_axes([.94, .25, .02, .6])
+    cax = h.fig.add_axes([.40, .0339, .2, .023])
+
+    # Get a mappable object with the same colormap as the data
+    points = plt.scatter([], [], c=[], vmin=vmin, vmax=vmax, cmap=cmap)
+    h.map(plt.plot, "amplitude", "score_relax")
+
+    # Draw the colorbar
+    cbar = h.fig.colorbar(points, cax=cax, orientation='horizontal')
+    cbar.ax.set_title('RMSD relax', fontsize=10)
+
     plt.show()
-
-    # trainB = train.groupby(train['pdbid'], as_index=False, sort=False)
-    # groups = dict(list(trainB))
-    print(train)
