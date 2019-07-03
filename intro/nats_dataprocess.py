@@ -17,24 +17,27 @@ from rosetta.protocols.relax import *
 
 def score_proteins(pdb_filename):
     init()
-    scorefxn = ScoreFunction()
-    scorefxn.set_weight(fa_atr, 0.800)
-    scorefxn.set_weight(fa_rep, 0.440)  # full-atom repulsive score
-    scorefxn.set_weight(fa_sol, 0.750)  # full-atom solvation score
-    scorefxn.set_weight(fa_intra_rep, 0.004)  # f.a. intraresidue rep. score
-    scorefxn.set_weight(fa_elec, 0.700)  # full-atom electronic score
-    scorefxn.set_weight(pro_close, 1.000)  # proline closure
-    scorefxn.set_weight(hbond_sr_bb, 1.170)  # short-range hbonding
-    scorefxn.set_weight(hbond_lr_bb, 1.170)  # long-range hbonding
-    scorefxn.set_weight(hbond_bb_sc, 1.170)  # backbone-sidechain hbonding
-    scorefxn.set_weight(hbond_sc, 1.100)  # sidechain-sidechain hbonding
-    scorefxn.set_weight(dslf_fa13, 1.000)  # disulfide full-atom score
-    scorefxn.set_weight(rama, 0.200)  # ramachandran score
-    scorefxn.set_weight(omega, 0.500)  # omega torsion score
-    scorefxn.set_weight(fa_dun, 0.560)  # fullatom Dunbrack rotamer score
-    scorefxn.set_weight(p_aa_pp, 0.320)
-    scorefxn.set_weight(ref, 1.000)  # reference identity score
+    # scorefxn = ScoreFunction()
+    # scorefxn.set_weight(fa_atr, 0.800)
+    # scorefxn.set_weight(fa_rep, 0.440)  # full-atom repulsive score
+    # scorefxn.set_weight(fa_sol, 0.750)  # full-atom solvation score
+    # scorefxn.set_weight(fa_intra_rep, 0.004)  # f.a. intraresidue rep. score
+    # scorefxn.set_weight(fa_elec, 0.700)  # full-atom electronic score
+    # scorefxn.set_weight(pro_close, 1.000)  # proline closure
+    # scorefxn.set_weight(hbond_sr_bb, 1.170)  # short-range hbonding
+    # scorefxn.set_weight(hbond_lr_bb, 1.170)  # long-range hbonding
+    # scorefxn.set_weight(hbond_bb_sc, 1.170)  # backbone-sidechain hbonding
+    # scorefxn.set_weight(hbond_sc, 1.100)  # sidechain-sidechain hbonding
+    # scorefxn.set_weight(dslf_fa13, 1.000)  # disulfide full-atom score
+    # scorefxn.set_weight(rama, 0.200)  # ramachandran score
+    # scorefxn.set_weight(omega, 0.500)  # omega torsion score
+    # scorefxn.set_weight(fa_dun, 0.560)  # fullatom Dunbrack rotamer score
+    # scorefxn.set_weight(p_aa_pp, 0.320)
+    # scorefxn.set_weight(ref, 1.000)  # reference identity score
     # print(scorefxn)
+    scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('talaris2014_cst')
+    scorefxn.show()
+
 
     # create a pose from the desired PDB file
     # -create an empty Pose object
@@ -48,11 +51,16 @@ def score_proteins(pdb_filename):
     score_init_list.append(pose_score)
 
     # === Bolean for Relax here ===
-    relax = ClassicRelax()
+    # relax = ClassicRelax()
+    # relax.set_scorefxn(scorefxn)
+    # relax.apply(pose)
+    # =============================
+
+    relax = FastRelax()
     relax.set_scorefxn(scorefxn)
     relax.apply(pose)
-    # =============================
-    pose.dump_pdb("minimized_" + pdb_filename)
+
+    pose.dump_pdb("minimized_fast" + pdb_filename)
     pose_score_2 = scorefxn(pose)
     # print(pose_score_2)
 
