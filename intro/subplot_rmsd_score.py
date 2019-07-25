@@ -8,11 +8,11 @@ import math
 from scipy.spatial import distance
 import numpy as np
 import Bio.PDB
+import Bio.AlignIO as al
 from sklearn import preprocessing
 
 
 def read_pfam_align():
-    import os
     file_path = os.path.join("../data/input/etc", "pfam_env.txt")
     pdb_align_dict = {}
     with open(file_path) as f1:
@@ -21,10 +21,80 @@ def read_pfam_align():
                 pdb_align_dict[line[0:4]] = (int(line[15:17]), int(line[21:24]))
     return pdb_align_dict
 
+def read_pdb_starts():
+    file_path = os.path.join("../data/input/etc", "pdb_starts.txt")
+    pdb_starts_dict = {}
+    with open(file_path) as f1:
+        for line in f1:
+            if not line.startswith("#") and not line.startswith("\n"):
+                line_array = line.split(',')
+                pdb_starts_dict[line[0:4]] = int(line_array[1])
+    return pdb_starts_dict
+
+def read_msa_fasta():
+    pdb_align_dict = {'3tfy':[],'5isv':[],'4pv6':[],'2z0z':[],'1s7l':[],'2x7b':[],'3igr':[],'5k18':[],'2cns':[],
+                      '5hh0':[],'5wjd':[],'5icv':[],'4kvm':[],'4u9v':[],}
+    file_path = os.path.join("../data/input/etc", "nats_alignment.afasta")
+    records = al.read(open(file_path), "fasta")
+    tlist = list(zip(*records))
+    for i in range(0, records.get_alignment_length()):
+        if '-' not in [y for y in tlist][i]:
+            for rec in records:
+                if not rec.id[0:4] == '4ua3':
+                    ls = [i for i, e in enumerate(rec.seq) if e != '-']
+                    res_cpt = ls.index(i)
+                    pdb_align_dict[rec.id[0:4]].append(res_cpt + read_pdb_starts()[rec.id[0:4]])
+    return pdb_align_dict
+
+def compute_rmsd_align(pdb_path1, pdb_path2):
+    sum_dist_sq = 0
+    atom_cpt = 1
+    file1_ref_array = pdb_path1.split('_')
+    file2_ref_array = pdb_path2.split('_')
+    if not os.path.exists(pdb_path1):
+        file1_ref_array[-3] = "1"
+        pdb_path1 = "_".join(file1_ref_array)
+    if not os.path.exists(pdb_path2):
+        file2_ref_array[-3] = "1"
+        pdb_path2 = "_".join(file2_ref_array)
+    # pdb1_res_list = read_msa_fasta()[file1_ref_array[-8]]
+    # pdb2_res_list = read_msa_fasta()[file2_ref_array[-8]]
+    pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
+    pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
+    with open(pdb_path1) as f1, open(pdb_path2) as f2:
+        for line1, line2 in zip(f1, f2):
+            # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
+            if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
+                if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
+                    if (int(line1[23:26].strip()) in pdb1_res_list) and \
+                            (int(line2[23:26].strip()) in pdb2_res_list):
+                        try:
+                            dist = distance.cdist(
+                                np.array([np.float64(val) for val in line1[31:54].split()]).reshape(1, -1),
+                                np.array([np.float64(val) for val in line2[31:54].split()]).reshape(1, -1))
+                        except ValueError as ex:
+                            dist = distance.cdist(np.array([np.float64(line1[30:38]),
+                                                            np.float64(line1[38:46]),
+                                                            np.float64(line1[46:54])]).reshape(1, -1),
+                                                  np.array([np.float64(line2[30:38]),
+                                                            np.float64(line2[38:46]),
+                                                            np.float64(line2[46:54])]).reshape(1, -1))
+                        sum_dist_sq += math.pow(dist[0][0], 2)
+                        atom_cpt += 1
+    rmsd = math.sqrt(sum_dist_sq / atom_cpt)
+    return rmsd
 
 def compute_rmsd(pdb_path1, pdb_path2, start, end):
     sum_dist_sq = 0
     atom_cpt = 1
+    if not os.path.exists(pdb_path1):
+        file_ref_array = pdb_path1.split('_')
+        file_ref_array[-3] = "1"
+        pdb_path1 = "_".join(file_ref_array)
+    if not os.path.exists(pdb_path2):
+        file_ref_array = pdb_path2.split('_')
+        file_ref_array[-3] = "1"
+        pdb_path2 = "_".join(file_ref_array)
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
             # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
@@ -59,6 +129,7 @@ def select_CA_align(pdb_path, start, end):
 
 # Global variables (Ugly)
 ca_align_list = []
+ca_align_dict = read_msa_fasta()
 
 
 def f(x,y,z, **kwargs):
@@ -77,7 +148,7 @@ def facet_scatter(x, y, c, **kwargs):
 
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook1.csv')
+    train = pd.read_csv('Workbook3.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -85,24 +156,33 @@ if __name__ == '__main__':
     for file in os.listdir("."):
         if file.endswith(".pdb"):
             if 'minimized' not in file:
-                start, end = read_pfam_align()[file[0:4]]
+                # start, end = read_pfam_align()[file[0:4]]
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[3], "a20.00")
                 if file.split("_")[-2] != "0.00":
-                    train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
+                    # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
+                    train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
                 else:
                     train.loc[train.pdb_filename == file, 'rmsd_init'] = 0.00
             elif 'minimized' in file:
-                start, end = read_pfam_align()[file.split("_")[1]]
+                # start, end = read_pfam_align()[file.split("_")[-8]]
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
-                file_ref = file_ref_temp.replace(file_ref_temp.split("_")[4], "a20.00")
+                file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-5], "a20.00")
                 if file.split("_")[-2] != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
-                    select_CA_align(file, start, end)
-                    res_to_be_aligned = ca_align_list
+                    # select_CA_align(file, start, end)
+                    # res_to_be_aligned = ca_align_list
+                    res_to_be_aligned = ca_align_dict[file.split("_")[-8]]
                     pdb_parser = Bio.PDB.PDBParser(QUIET=True)
                     # Get the structures
-                    ref_structure = pdb_parser.get_structure("reference", file_ref)
+                    try:
+                        ref_structure = pdb_parser.get_structure("reference", file_ref)
+                    except FileNotFoundError as err:
+                        print("You chose the 0.00 file with tag 1 instead of 2. Retrying...")
+                        file_ref_array = file_ref.split('_')
+                        file_ref_array[-3] = "1"
+                        file_ref = "_".join(file_ref_array)
+                        ref_structure = pdb_parser.get_structure("reference", file_ref)
                     sample_structure = pdb_parser.get_structure("sample", file)
                     ref_model = ref_structure[0]
                     sample_model = sample_structure[0]
@@ -125,11 +205,12 @@ if __name__ == '__main__':
                     super_imposer.set_atoms(ref_atoms, sample_atoms)
                     super_imposer.apply(sample_model.get_atoms())
 
-                    # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
-                    file = file.replace(file.split('_')[0] + '_', '')
+                    file = '_'.join(file.split('_')[-8:])
+                    # train.loc[train.pdb_filename == file, 'rmsd_relax'] = compute_rmsd(file, file_ref, start, end)
                     train.loc[train.pdb_filename == file, 'rmsd_relax'] = super_imposer.rms
                 else:
-                    file = file.replace(file.split('_')[0] + '_', '')
+                    file_array = file.split('_')
+                    file = "_".join(file_array[-8:])
                     train.loc[train.pdb_filename == file, 'rmsd_relax'] = 0.00
 
     # train.set_index('pdb_filename', inplace=True)
@@ -169,10 +250,14 @@ if __name__ == '__main__':
     vmax = train['rmsd_relax'].max()
     # vmin = train['rmsd_init'].min()
     # vmax = train['rmsd_init'].max()
-    cmap = sns.diverging_palette(240, 10, l=65, center="dark", as_cmap=True)
+
+    # cmap = sns.diverging_palette(150, 275, s=80, l=55, center="light", as_cmap=True)
+    # cmap = sns.light_palette((44,162,95), input="husl", as_cmap=True)
+    cmap = sns.light_palette("seagreen",  as_cmap=True)
 
     # h.map(plt.plot, "amplitude", "score_relax", marker="o")
-    h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
+    # h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
+    h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, vmin=vmin, vmax=vmax, cmap=cmap)
 
     # Make space for the colorbar
     # h.fig.subplots_adjust(right=.92)

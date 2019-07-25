@@ -14,6 +14,8 @@ from os import fdopen, remove
 from pyrosetta import *
 from rosetta.core.scoring import *
 from rosetta.protocols.relax import *
+from rosetta.core.pose import *
+from rosetta.protocols.constraint_movers import *
 
 def score_proteins(pdb_filename):
     init()
@@ -36,7 +38,11 @@ def score_proteins(pdb_filename):
     # scorefxn.set_weight(ref, 1.000)  # reference identity score
     # print(scorefxn)
     scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('talaris2014_cst')
-    scorefxn.show()
+
+    ### Scorefunction constraints setup -  Already done with talaris2014_cst
+    # score_manager = pyrosetta.rosetta.core.scoring.ScoreTypeManager()
+    # constraint = score_manager.score_type_from_name('atom_pair_constraint')
+    # scorefxn.set_weight(constraint, 5)
 
 
     # create a pose from the desired PDB file
@@ -48,7 +54,7 @@ def score_proteins(pdb_filename):
     residues = range(1, pose.total_residue() + 1)
     pose_score = scorefxn(pose)
     # print(pose_score)
-    score_init_list.append(pose_score)
+    score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
     # === Bolean for Relax here ===
     # relax = ClassicRelax()
@@ -56,15 +62,25 @@ def score_proteins(pdb_filename):
     # relax.apply(pose)
     # =============================
 
+    ### Pose constraints setup
+    # constraints = pyrosetta.rosetta.protocols.constraint_movers.ConstraintSetMover()
+    # constraints.constraint_file('constraints.cst')
+    # constraints.add_constraints(True)
+    # constraints.apply(pose)
+
     relax = FastRelax()
     relax.set_scorefxn(scorefxn)
+
+    ### ------
+    relax.constrain_relax_to_start_coords(True)
+
     relax.apply(pose)
 
-    pose.dump_pdb("minimized_fast" + pdb_filename)
+    pose.dump_pdb("minimized_fast_cst_" + pdb_filename)
     pose_score_2 = scorefxn(pose)
     # print(pose_score_2)
 
-    score_relax_list.append(pose_score_2)
+    score_relax_list.append(pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
 def replace(file_path, pattern, subst):
     #Create temp file
