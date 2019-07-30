@@ -17,6 +17,21 @@ from rosetta.protocols.relax import *
 from rosetta.core.pose import *
 from rosetta.protocols.constraint_movers import *
 
+def read_pdb_chains():
+    file_path = os.path.join("../data/input/etc", "pdb_chains.txt")
+    pdb_chains_dict = {}
+    with open(file_path) as f1:
+        for line in f1:
+            if not line.startswith("#") and not line.startswith("\n"):
+                chains_array = []
+                line_array = line.split(':')
+                if len(line_array[1].split(',')) > 1:
+                    chains_array = [x.rstrip().upper() for x in line_array[1].split(',')]
+                    pdb_chains_dict[line[0:4].lower()] = chains_array
+                else:
+                    pdb_chains_dict[line[0:4].lower()] = [line_array[1].rstrip().upper()]
+    return pdb_chains_dict
+
 def score_proteins(pdb_filename):
     init()
     # scorefxn = ScoreFunction()
@@ -37,7 +52,7 @@ def score_proteins(pdb_filename):
     # scorefxn.set_weight(p_aa_pp, 0.320)
     # scorefxn.set_weight(ref, 1.000)  # reference identity score
     # print(scorefxn)
-    scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('talaris2014_cst')
+    scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
 
     ### Scorefunction constraints setup -  Already done with talaris2014_cst
     # score_manager = pyrosetta.rosetta.core.scoring.ScoreTypeManager()
@@ -73,6 +88,7 @@ def score_proteins(pdb_filename):
 
     ### ------
     relax.constrain_relax_to_start_coords(True)
+    relax.ramp_down_constraints(False)
 
     relax.apply(pose)
 
@@ -94,11 +110,17 @@ def replace(file_path, pattern, subst):
     #Move new file
     move(abs_path, file_path)
 
+
 def pdb_occupancy():
     import os
+    # Read pdbid // chain mapping
+    pdb_chains_dict = read_pdb_chains()
+    chains = None
     for file in os.listdir("."):
         if file.endswith(".pdb") and 'minimized' not in file:
             fh, abs_path = mkstemp()
+            if file[0:4] in pdb_chains_dict.keys():
+                chains = pdb_chains_dict[file[0:4]]
             with fdopen(fh, 'w') as new_file:
                 with open(file) as f1:
                     for line in f1:
@@ -118,8 +140,10 @@ def pdb_occupancy():
                                 line = line.replace(' O  ', ' OXT')
                             if line[17:20] == 'CYX' or line[17:20] == ' CYM':
                                 line = line.replace(line[17:20], 'CYS ')
-
-                            new_file.write("%s" % line)
+                            if chains is None:
+                                new_file.write("%s" % line)
+                            elif line[21:22] in chains:
+                                new_file.write("%s" % line)
             # Remove original file
             remove(file)
             # Move new file
