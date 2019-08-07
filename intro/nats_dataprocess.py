@@ -17,6 +17,7 @@ from rosetta.protocols.relax import *
 from rosetta.core.pose import *
 from rosetta.protocols.constraint_movers import *
 
+
 def read_pdb_chains():
     file_path = os.path.join("../data/input/etc", "pdb_chains.txt")
     pdb_chains_dict = {}
@@ -33,7 +34,7 @@ def read_pdb_chains():
     return pdb_chains_dict
 
 def score_proteins(pdb_filename):
-    init()
+    init(extra_options = "-constant_seed")
     # scorefxn = ScoreFunction()
     # scorefxn.set_weight(fa_atr, 0.800)
     # scorefxn.set_weight(fa_rep, 0.440)  # full-atom repulsive score
@@ -83,10 +84,13 @@ def score_proteins(pdb_filename):
     # constraints.add_constraints(True)
     # constraints.apply(pose)
 
-    relax = FastRelax()
+    relax = FastRelax(standard_repeats=10)
     relax.set_scorefxn(scorefxn)
 
     ### ------
+    # relax.repeats(10)
+    # relax.nstruct(10)
+
     relax.constrain_relax_to_start_coords(True)
     relax.ramp_down_constraints(False)
 
