@@ -10,6 +10,7 @@ import numpy as np
 import Bio.PDB
 import Bio.AlignIO as al
 from sklearn import preprocessing
+import matplotlib.ticker as ticker
 
 
 def read_pfam_align():
@@ -141,17 +142,19 @@ def f(x,y,z, **kwargs):
                     bbox=dict(pad=.9,alpha=1, fc='w',color='none'),
                     va='center', ha='center',weight='bold')
 
-def facet_scatter(x, y, c, **kwargs):
+def facet_scatter(x, y, **kwargs):
     """Draw scatterplot with point colors from a faceted DataFrame columns."""
     kwargs.pop("color")
-    plt.scatter(x, y, c=c, **kwargs)
+    # plt.scatter(x, y, c=c, **kwargs)
+    # ax = sns.boxplot(x, y, data=train, **kwargs)
+    ax = sns.boxplot(x, y, **kwargs)
 
 
 # GLOBAL VARIABLES
 amplitude_max = 30
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook16.csv')
+    train = pd.read_csv('Workbook11.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -222,9 +225,12 @@ if __name__ == '__main__':
     # train['pdbid'] = train["pdb_filename"].str.split('_')[0]
     train['pdbid'] = train.pdb_filename.str[:4]
     # new data frame with split value columns
-    new = train["pdb_filename"].str.split("_", n=7, expand=True)
+    new = train["pdb_filename"].str.split("_", n=8, expand=True)
     train['amplitude'] = new[6]
     train['amplitude'] = train['amplitude'].astype(float)
+
+    # train['repeat'] = new[8]
+    # train['repeat'] = train['repeat'].astype(int)
 
     column_names_to_normalize = ['score_init']
 
@@ -234,48 +240,40 @@ if __name__ == '__main__':
     df_temp = pd.DataFrame(x_scaled, columns=column_names_to_normalize, index=train.index)
     train[column_names_to_normalize] = df_temp
 
-    col_name = ['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax', 'pdbid', 'amplitude']
+    col_name = ['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax', 'pdbid', 'amplitude', 'repeat']
 
     train = train.loc[(train['pdbid'] != "5isv")]
     train = train.loc[(train['pdbid'] != "2cns")]
 
+    # Remove the other repeats for now
+    # train = train.loc[(train['repeat'] == 1)]
+
     grouped = train.groupby(["pdbid"])
     train = grouped.apply(lambda x: x.sort_values(["amplitude"], ascending = True)).reset_index(drop=True)
 
-    # sns.set_style("whitegrid", {'axes.grid': False, 'axes.edgecolor': 'none'})
-
-    # h = sns.FacetGrid(train, col="pdbid", hue='pdbid', col_wrap=7, sharey='row', sharex='col', margin_titles=True)
-    # h = sns.FacetGrid(train, col="pdbid", palette = 'seismic', gridspec_kws={"hspace":0.4}, sharey=False, sharex=True)
     h = sns.FacetGrid(train, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
-    # h.map(f, "amplitude", "score_init", "rmsd_init", scale=.7, markers="")
 
     vmin = train['rmsd_relax'].min()
     vmax = train['rmsd_relax'].max()
-    # vmin = train['rmsd_init'].min()
-    # vmax = train['rmsd_init'].max()
 
-    # cmap = sns.diverging_palette(150, 275, s=80, l=55, center="light", as_cmap=True)
-    # cmap = sns.light_palette((44,162,95), input="husl", as_cmap=True)
-    cmap = sns.light_palette("seagreen",  as_cmap=True)
+    # Plotting the data
+    # response = ['Base', 'State23', 'State42', 'End']
+    # fig, ax = pt.subplots(1, len(response), sharex=True, sharey=True)
+    # for i, r in enumerate(col_name):
+    #     sns.boxplot(data=train, x='amplitude', y='score_relax', hue='environment', ax=ax[i])
+    #     ax[i].set_ylabel('')
+    #     ax[i].set_title(r)
 
-    # h.map(plt.plot, "amplitude", "score_relax", marker="o")
-    # h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
-    h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, vmin=vmin, vmax=vmax, cmap=cmap)
+    h.map(facet_scatter, 'amplitude', 'score_relax', data=train)
+    # h.map(sns.boxplot, 'amplitude', 'score_relax', data=train)
 
-    # Make space for the colorbar
-    # h.fig.subplots_adjust(right=.92)
+    for idx, v in enumerate(train.pdbid.unique()):
+        h.axes[idx].set_xticklabels(train.loc[train.pdbid == v, 'amplitude'].unique(), rotation=45)
+
+
+
+    # h.subplots_adjust(wspace=0)
+    # h.savefig('boxplot-python.png')
+
     # plt.tight_layout()
-
-    # Define a new Axes where the colorbar will go
-    # cax = h.fig.add_axes([.94, .25, .02, .6])
-    cax = h.fig.add_axes([.40, .0339, .2, .023])
-
-    # Get a mappable object with the same colormap as the data
-    points = plt.scatter([], [], c=[], vmin=vmin, vmax=vmax, cmap=cmap)
-    h.map(plt.plot, "amplitude", "score_relax")
-
-    # Draw the colorbar
-    cbar = h.fig.colorbar(points, cax=cax, orientation='horizontal')
-    cbar.ax.set_title('RMSD relax', fontsize=10)
-
     plt.show()

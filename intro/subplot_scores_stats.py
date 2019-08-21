@@ -14,7 +14,7 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook7.csv')
+    train = pd.read_csv('Workbook10.csv')
 
     new = train["pdb_filename"].str.split("_", n=8, expand=True)
     train['amplitude'] = new[6]
@@ -84,19 +84,19 @@ if __name__ == '__main__':
     #     # df = n - 2
     #     print(p)
 
-    j = 15.78
-    iter_list = []
-    score_list = train.loc[(train.amplitude == j) & (train['repeat'].notnull()), 'score_relax']
-    for i in score_list:
-        iter_list.append(i)
+    # j = 15.78
+    # iter_list = []
+    # score_list = train.loc[(train.amplitude == j) & (train['repeat'].notnull()), 'score_relax']
+    # for i in score_list:
+    #     iter_list.append(i)
 
     # train.to_csv("stats_out.csv", sep=';', encoding='utf-8')
 
-    sns.distplot(iter_list)
+    # sns.distplot(iter_list)
 
     # sns.catplot(x="amplitude", y="score_relax", kind="swarm", data=train)
     # sns.catplot(x="amplitude", y="score_relax", jitter=False, data=train)
 
-    # ax = sns.boxplot(x="amplitude", y="score_relax", data=train)
+    ax = sns.boxplot(x="amplitude", y="score_relax", data=train)
 
     plt.show()

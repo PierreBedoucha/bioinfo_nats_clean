@@ -7,6 +7,10 @@ from rosetta.core.scoring import *
 from rosetta.protocols.relax import *
 from rosetta.core.pose import *
 from rosetta.protocols.constraint_movers import *
+import multiprocessing as mp
+from itertools import repeat
+from functools import partial
+import psutil
 
 
 def read_pdb_chains():
@@ -25,8 +29,8 @@ def read_pdb_chains():
     return pdb_chains_dict
 
 rosetta_options = ["-ignore_unrecognized_res false",
-                   "-ex1",
-                   "-ex2",
+                   # "-ex1",
+                   # "-ex2",
                    "-use_input_sc",
                    "-flip_HNQ",
                    "-no_optH false",
@@ -35,53 +39,23 @@ rosetta_options = ["-ignore_unrecognized_res false",
                    "-relax:ramp_constraints false",
                    "-constant_seed",
                    "-no_his_his_pairE",
-                   # "-linmem_ig 10",
+                   "-linmem_ig 10",
                    "-nblist_autoupdate true",
                    "-relax:coord_cst_stdev 0.5"]
 
-def score_proteins(pdb_filename):
+def score_proteins(matches, pdb_filename):
     # init(extra_options = "-constant_seed -ignore_unrecognized_res -ex2 -use_input_sc -no_his_his_pairE -no_optH false -flip_HNQ -relax:sc_cst_maxdist 3 -relax:coord_cst_stdev 0.1 -relax:coord_cst_width 1.0")
-    init(extra_options=" ".join(rosetta_options))
-
-    # -ex1
-    # pyrosetta.rosetta.basic.options.set_boolean_option('-no_optH', False)
-    # pyrosetta.rosetta.core.set_boolean_option('-no_optH', False)
-
     scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
-    # scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015')
-    # scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('talaris2013_cst')
-
-    # create a pose from the desired PDB file
-    # -create an empty Pose object
     pose = Pose()
-    # -load the data from pdb_file into the pose
     pose_from_file(pose, pdb_filename)
-    pose_score = scorefxn(pose)
-    score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
     relax = FastRelax(standard_repeats=5)
     relax.set_scorefxn(scorefxn)
+    relax.apply(pose)
+    pose.dump_pdb("minimized_fast_CST_" + pdb_filename)
+    pose_score_2 = scorefxn(pose)
 
-    # relax.constrain_relax_to_start_coords(True)
-    # relax.coord_constrain_sidechains(True)
-    # # relax.coord_constrain_sidechains(False)
-    # relax.ramp_down_constraints(False)
-    # pyrosetta.rosetta.basic.options.set_real_option('-relax:coord_cst_stdev', 0.000001)
-    # relax.coord_cst_stdev(0.000001)
-
-    # movemap = MoveMap()
-    # movemap.set_bb(True)
-    # relax.jump_move(False)
-    # relax.sc_cst_maxist(3)
-    # relax.set_movemap(movemap)
-
-    for i in list(range(1, nb_of_repeats+1, 1)):
-        relax.apply(pose)
-        pose.dump_pdb("minimized_fast_CST_" + str(i) + "_" + pdb_filename)
-        pose_score_2 = scorefxn(pose)
-
-        # score_relax_list.append(pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
-        score_relax_dict[pdb_filename + "_" + str(i)] = pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose)
+    matches.append(pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
 
 def pdb_occupancy():
@@ -116,8 +90,6 @@ def pdb_occupancy():
             move(abs_path, file)
 
             pdbfile_list.append(file)
-            score_proteins(file)
-            # break
 
 
 # Global variables
@@ -129,22 +101,44 @@ nb_of_repeats = 1
 
 if __name__ == '__main__':
     pdb_occupancy()
-    import csv
-    import numpy as np
 
+    list_files = [x for x in os.listdir(".") if x.endswith(".pdb") and 'minimized' not in x]
+    init(extra_options=" ".join(rosetta_options))
+    scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
+    for file in list_files:
+        pose = Pose()
+        pose_from_file(pose, file)
+        pose_score = scorefxn(pose)
+        score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
+
+    # with mp.Pool(mp.cpu_count()) as pool:
+    #     # results = pool.starmap(score_proteins, zip(list_file, repeat(scorefxn)))
+    #     results = pool.starmap(score_proteins, list_file)
+    # result_cpt = 1
+    # for res, pdb in zip(results, list_file):
+    #     score_relax_dict[pdb + "_" + str(result_cpt)] = res
+    #     result_cpt += 1
+
+    manager = mp.Manager()  # create SyncManager
+    matches = manager.list()  # create a shared list here
+    link_matches = partial(score_proteins, matches)  # create one arg callable to
+    # pass to pool.map()
+    # pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool(psutil.cpu_count(logical = False))
+    pool.map(link_matches, list_files)  # apply partial to files list
+    pool.close()
+    pool.join()
+    print(matches)
+
+    import csv
     wtr = csv.writer(open('pyrosetta_out.csv', 'w+'), delimiter=',', lineterminator='\n', quoting=csv.QUOTE_NONE,
                      escapechar='\\')  #
-    # wtr.writerow(['pdb_filename', 'score_init', 'score_relax'])
     wtr.writerow(['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax'])
 
     padded_list = [0] * (nb_of_repeats * len(score_init_list))  # [0,0,0,0,0,0,0,0,0,0,0]
     padded_list[::nb_of_repeats] = score_init_list
     padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
 
-
-    # l = [(x for x in score_relax_dict.keys()), (x for x in score_init_list), (x for x in score_relax_dict.values())]
-    # l = [(x for x in score_relax_dict.keys()), (x for x in padded_list), (x for x in score_relax_dict.values())]
-    # l = [(x for x in score_relax_dict.keys()), (x for x in score_relax_dict.values())]
-    l = [(x for x in score_relax_dict.keys()), (x for x in padded_list_rmsd), (x for x in padded_list),
-         (x for x in padded_list_rmsd), (x for x in score_relax_dict.values())]
+    l = [(x for x in list_files), (x for x in padded_list_rmsd), (x for x in padded_list),
+         (x for x in padded_list_rmsd), (x for x in matches)]
     wtr.writerows([i for i in zip(*l)])

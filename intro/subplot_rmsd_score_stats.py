@@ -151,7 +151,7 @@ def facet_scatter(x, y, c, **kwargs):
 amplitude_max = 30
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook16.csv')
+    train = pd.read_csv('Workbook14.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -222,9 +222,12 @@ if __name__ == '__main__':
     # train['pdbid'] = train["pdb_filename"].str.split('_')[0]
     train['pdbid'] = train.pdb_filename.str[:4]
     # new data frame with split value columns
-    new = train["pdb_filename"].str.split("_", n=7, expand=True)
+    new = train["pdb_filename"].str.split("_", n=8, expand=True)
     train['amplitude'] = new[6]
     train['amplitude'] = train['amplitude'].astype(float)
+
+    train['repeat'] = new[8]
+    train['repeat'] = train['repeat'].astype(int)
 
     column_names_to_normalize = ['score_init']
 
@@ -238,6 +241,9 @@ if __name__ == '__main__':
 
     train = train.loc[(train['pdbid'] != "5isv")]
     train = train.loc[(train['pdbid'] != "2cns")]
+
+    # Remove the other repeats for now
+    train = train.loc[(train['repeat'] == 1)]
 
     grouped = train.groupby(["pdbid"])
     train = grouped.apply(lambda x: x.sort_values(["amplitude"], ascending = True)).reset_index(drop=True)
