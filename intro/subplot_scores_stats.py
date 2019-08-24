@@ -14,7 +14,7 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook10.csv')
+    train = pd.read_csv('Workbook17.csv')
 
     new = train["pdb_filename"].str.split("_", n=8, expand=True)
     train['amplitude'] = new[6]

@@ -151,7 +151,7 @@ def facet_scatter(x, y, c, **kwargs):
 amplitude_max = 30
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook14.csv')
+    train = pd.read_csv('Workbook19.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -164,9 +164,9 @@ if __name__ == '__main__':
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[3], "a{0}.00".format(str(amplitude_max)))
                 if file.split("_")[-2] != "0.00":
                     # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
-                    train.loc[train.pdb_filename == file + "_1", 'rmsd_init'] = compute_rmsd_align(file, file_ref)
+                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
                 else:
-                    train.loc[train.pdb_filename == file + "_1", 'rmsd_init'] = 0.00
+                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = 0.00
             elif 'minimized' in file:
                 # start, end = read_pfam_align()[file.split("_")[-8]]
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
@@ -210,23 +210,22 @@ if __name__ == '__main__':
 
                     file = '_'.join(file.split('_')[-8:])
                     # train.loc[train.pdb_filename == file, 'rmsd_relax'] = compute_rmsd(file, file_ref, start, end)
-                    train.loc[train.pdb_filename == file + "_1", 'rmsd_relax'] = super_imposer.rms
+                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_relax'] = super_imposer.rms
                 else:
                     file_array = file.split('_')
                     file = "_".join(file_array[-8:])
-                    train.loc[train.pdb_filename == file + "_1", 'rmsd_relax'] = 0.00
+                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_relax'] = 0.00
 
     # train.set_index('pdb_filename', inplace=True)
     train.to_csv("test_out.csv", sep=';', encoding='utf-8')
 
-    # train['pdbid'] = train["pdb_filename"].str.split('_')[0]
-    train['pdbid'] = train.pdb_filename.str[:4]
+    new = train["pdb_filename"].str.split("_", n=9, expand=True)
+    train['pdbid'] = new[1]
     # new data frame with split value columns
-    new = train["pdb_filename"].str.split("_", n=8, expand=True)
-    train['amplitude'] = new[6]
+    train['amplitude'] = new[7]
     train['amplitude'] = train['amplitude'].astype(float)
 
-    train['repeat'] = new[8]
+    train['repeat'] = new[0]
     train['repeat'] = train['repeat'].astype(int)
 
     column_names_to_normalize = ['score_init']

@@ -11,6 +11,7 @@ import multiprocessing as mp
 from itertools import repeat
 from functools import partial
 import psutil
+import numpy as np
 
 
 def read_pdb_chains():
@@ -31,6 +32,8 @@ def read_pdb_chains():
 rosetta_options = ["-ignore_unrecognized_res false",
                    # "-ex1",
                    # "-ex2",
+                   # "-ex1aro",
+                   # "-ex2aro",
                    "-use_input_sc",
                    "-flip_HNQ",
                    "-no_optH false",
@@ -47,7 +50,7 @@ def score_proteins(matches, pdb_filename):
     # init(extra_options = "-constant_seed -ignore_unrecognized_res -ex2 -use_input_sc -no_his_his_pairE -no_optH false -flip_HNQ -relax:sc_cst_maxdist 3 -relax:coord_cst_stdev 0.1 -relax:coord_cst_width 1.0")
     scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
     pose = Pose()
-    pose_from_file(pose, pdb_filename)
+    pose_from_file(pose, '_'.join(pdb_filename.split("_")[1:]))
 
     relax = FastRelax(standard_repeats=5)
     relax.set_scorefxn(scorefxn)
@@ -55,7 +58,7 @@ def score_proteins(matches, pdb_filename):
     pose.dump_pdb("minimized_fast_CST_" + pdb_filename)
     pose_score_2 = scorefxn(pose)
 
-    matches.append(pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
+    matches.append((pdb_filename, pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose)))
 
 
 def pdb_occupancy():
@@ -97,7 +100,7 @@ pdbfile_list = []
 score_init_list = []
 score_relax_list = []
 score_relax_dict = {}
-nb_of_repeats = 1
+nb_of_repeats = 3
 
 if __name__ == '__main__':
     pdb_occupancy()
@@ -111,21 +114,18 @@ if __name__ == '__main__':
         pose_score = scorefxn(pose)
         score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
-    # with mp.Pool(mp.cpu_count()) as pool:
-    #     # results = pool.starmap(score_proteins, zip(list_file, repeat(scorefxn)))
-    #     results = pool.starmap(score_proteins, list_file)
-    # result_cpt = 1
-    # for res, pdb in zip(results, list_file):
-    #     score_relax_dict[pdb + "_" + str(result_cpt)] = res
-    #     result_cpt += 1
-
     manager = mp.Manager()  # create SyncManager
     matches = manager.list()  # create a shared list here
     link_matches = partial(score_proteins, matches)  # create one arg callable to
-    # pass to pool.map()
-    # pool = mp.Pool(mp.cpu_count())
+
+    #Repeating the relax/scoring
+    list_files_rep = []
+    for file in list_files:
+        for i in list(range(1, nb_of_repeats+1, 1)):
+            list_files_rep.append(str(i) + "_" + file)
+
     pool = mp.Pool(psutil.cpu_count(logical = False))
-    pool.map(link_matches, list_files)  # apply partial to files list
+    pool.map(link_matches, list_files_rep)  # apply partial to files list
     pool.close()
     pool.join()
     print(matches)
@@ -139,6 +139,6 @@ if __name__ == '__main__':
     padded_list[::nb_of_repeats] = score_init_list
     padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
 
-    l = [(x for x in list_files), (x for x in padded_list_rmsd), (x for x in padded_list),
-         (x for x in padded_list_rmsd), (x for x in matches)]
+    l = [(x[0] for x in matches), (x for x in padded_list_rmsd), (x for x in padded_list),
+         (x for x in padded_list_rmsd), (x[1] for x in matches)]
     wtr.writerows([i for i in zip(*l)])
