@@ -1,0 +1,65 @@
+* Generate PSF and CHARMM coordinate set for 
+* the small protein Echistatin
+*
+
+set protein 5isv_A_m11_a30.00_s1_0_30.00_SC
+set struct ../struct
+set lib ../lib
+
+! Read in Topology and  Parameter files
+
+open unit 1 card read name @lib/top_all22_prot.rtf 
+read RTF card unit 1
+close unit 1
+
+open unit 1 card read name @lib/par_all22_prot.prm
+read PARA card unit 1
+close unit 1
+
+!stream @lib/toppar_water_ions.str
+
+! Read sequence from the PDB coordinate file
+
+OPEN unit 10 READ formatted name ../struct/@protein-a.pdb
+READ sequ pdb unit 10
+gener A setup warn
+rewind unit 10
+open unit 11 read formatted name ../struct/@protein-a2.pdb
+read sequ pdb unit 11
+gener A2 setup warn
+rewind unit 11
+join A A2
+
+! SAVE THE COMPLETED PSF
+open unit 1 write formatted name @lib/@protein.psf
+write psf card unit 1
+
+read coor univ unit 10 offset  -1
+close unit 10
+read coor univ unit 11 offset -11
+close unit 11
+
+ic purge   ! CLEANUP IC TABLE
+ic param   ! GET MISSING BONDS AND ANGLES FROM PARAMETER FILE
+ic build   ! PLACE ANY MISSING COORDS, E.G. TERMINAL O ON CO2-
+
+! CHECK FOR MISSING HEAVY ATOM COORDS
+define test sele ( .not. type H* ) .and. ( .not. init ) show end
+
+! USE HBUILD TO REBUILD H ATOMS; SPINS METHYLS, ETC. TO LOCAL MINIMUM
+coor init sele type H* end
+hbuild sele type H* end
+
+! CHECK FOR ANY MISSING COORDS
+define test sele .not. init show end
+
+open unit 1 card write name @struct/@protein-allh.pdb 
+write coor pdb unit 1
+
+
+close unit 1
+
+stop 
+
+
+

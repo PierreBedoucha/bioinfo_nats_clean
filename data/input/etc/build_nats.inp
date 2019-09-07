@@ -1,0 +1,67 @@
+* Generate PSF and CHARMM coordinate set for 
+* the small protein Echistatin
+*
+
+set protein 5isv_A_m11_a30.00_s1_0_30.00_SC
+set struct ../struct
+set lib ../lib
+
+! Read in Topology and  Parameter files
+
+open unit 1 card read name @lib/top_all22_prot.rtf 
+read RTF card unit 1
+close unit 1
+
+open unit 1 card read name @lib/par_all22_prot.prm
+read PARA card unit 1
+close unit 1
+
+!stream @lib/toppar_water_ions.str
+
+! Read sequence from the PDB coordinate file
+
+OPEN unit 1 READ formatted name ../struct/@protein.pdb
+READ sequ pdb unit 1
+CLOSE unit 1
+
+GENERATE proa setup
+
+OPEN unit 1 READ formatted name ../struct/@protein.pdb
+!READ coor pdb offset -1 unit 1 append
+read coor pdb offset -1 unit 1
+CLOSE unit 1
+
+
+! build in missing coordinates using values in
+! the parameter set
+! ATTEMPT TO PLACE ANY MISSING HEAVY ATOMS
+ic purge
+ic param
+ic fill preserve
+ic build
+! define test sele ( .not. type H* ) .and. ( .not. init ) show end
+
+! build in hydrogens if using a crystal structure
+hbuild sele all end
+
+! print all coordinates:  undefined coordinates are indicated as
+! 9999.00
+
+print coor
+
+! write out the protein structure file (psf) and
+! the coordinate file in pdb format.  
+
+open write formatted unit 27 name @lib/@protein.psf 
+write psf card unit 27 
+
+
+close unit 27
+
+open unit 1 card write name @struct/@protein-allh.pdb 
+write coor pdb unit 1
+
+
+close unit 1
+
+stop 

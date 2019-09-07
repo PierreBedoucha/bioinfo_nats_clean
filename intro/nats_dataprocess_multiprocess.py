@@ -30,10 +30,10 @@ def read_pdb_chains():
     return pdb_chains_dict
 
 rosetta_options = ["-ignore_unrecognized_res false",
-                   # "-ex1",
-                   # "-ex2",
-                   # "-ex1aro",
-                   # "-ex2aro",
+                   "-ex1",
+                   "-ex2",
+                   "-ex1aro",
+                   "-ex2aro",
                    "-use_input_sc",
                    "-flip_HNQ",
                    "-no_optH false",
@@ -42,7 +42,7 @@ rosetta_options = ["-ignore_unrecognized_res false",
                    "-relax:ramp_constraints false",
                    "-constant_seed",
                    "-no_his_his_pairE",
-                   "-linmem_ig 10",
+                   # "-linmem_ig 10",
                    "-nblist_autoupdate true",
                    "-relax:coord_cst_stdev 0.5"]
 
@@ -100,7 +100,7 @@ pdbfile_list = []
 score_init_list = []
 score_relax_list = []
 score_relax_dict = {}
-nb_of_repeats = 3
+nb_of_repeats = 1
 
 if __name__ == '__main__':
     pdb_occupancy()

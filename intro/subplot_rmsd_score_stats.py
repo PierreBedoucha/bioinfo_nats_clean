@@ -151,7 +151,7 @@ def facet_scatter(x, y, c, **kwargs):
 amplitude_max = 30
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook19.csv')
+    train = pd.read_csv('Workbook20.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -228,6 +228,9 @@ if __name__ == '__main__':
     train['repeat'] = new[0]
     train['repeat'] = train['repeat'].astype(int)
 
+    train['mode'] = new[3].str.slice(1)
+    train['mode'] = train['mode'].astype(int)
+
     column_names_to_normalize = ['score_init']
 
     min_max_scaler = preprocessing.MinMaxScaler()
@@ -249,38 +252,43 @@ if __name__ == '__main__':
 
     # sns.set_style("whitegrid", {'axes.grid': False, 'axes.edgecolor': 'none'})
 
-    # h = sns.FacetGrid(train, col="pdbid", hue='pdbid', col_wrap=7, sharey='row', sharex='col', margin_titles=True)
-    # h = sns.FacetGrid(train, col="pdbid", palette = 'seismic', gridspec_kws={"hspace":0.4}, sharey=False, sharex=True)
-    h = sns.FacetGrid(train, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
-    # h.map(f, "amplitude", "score_init", "rmsd_init", scale=.7, markers="")
+    modes=[9,10,12]
+    for m in modes:
+        train_mode = train.loc[(train['mode'] == m)]
 
-    vmin = train['rmsd_relax'].min()
-    vmax = train['rmsd_relax'].max()
-    # vmin = train['rmsd_init'].min()
-    # vmax = train['rmsd_init'].max()
+        # h = sns.FacetGrid(train, col="pdbid", hue='pdbid', col_wrap=7, sharey='row', sharex='col', margin_titles=True)
+        # h = sns.FacetGrid(train, col="pdbid", palette = 'seismic', gridspec_kws={"hspace":0.4}, sharey=False, sharex=True)
+        h = sns.FacetGrid(train_mode, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
+        # h.map(f, "amplitude", "score_init", "rmsd_init", scale=.7, markers="")
 
-    # cmap = sns.diverging_palette(150, 275, s=80, l=55, center="light", as_cmap=True)
-    # cmap = sns.light_palette((44,162,95), input="husl", as_cmap=True)
-    cmap = sns.light_palette("seagreen",  as_cmap=True)
+        vmin = train_mode['rmsd_relax'].min()
+        vmax = train_mode['rmsd_relax'].max()
+        # vmin = train['rmsd_init'].min()
+        # vmax = train['rmsd_init'].max()
 
-    # h.map(plt.plot, "amplitude", "score_relax", marker="o")
-    # h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
-    h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, vmin=vmin, vmax=vmax, cmap=cmap)
+        # cmap = sns.diverging_palette(150, 275, s=80, l=55, center="light", as_cmap=True)
+        # cmap = sns.light_palette((44,162,95), input="husl", as_cmap=True)
+        cmap = sns.light_palette("seagreen",  as_cmap=True)
 
-    # Make space for the colorbar
-    # h.fig.subplots_adjust(right=.92)
-    # plt.tight_layout()
+        # h.map(plt.plot, "amplitude", "score_relax", marker="o")
+        # h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
+        h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, vmin=vmin, vmax=vmax, cmap=cmap)
 
-    # Define a new Axes where the colorbar will go
-    # cax = h.fig.add_axes([.94, .25, .02, .6])
-    cax = h.fig.add_axes([.40, .0339, .2, .023])
+        # Make space for the colorbar
+        # h.fig.subplots_adjust(right=.92)
+        # plt.tight_layout()
 
-    # Get a mappable object with the same colormap as the data
-    points = plt.scatter([], [], c=[], vmin=vmin, vmax=vmax, cmap=cmap)
-    h.map(plt.plot, "amplitude", "score_relax")
+        # Define a new Axes where the colorbar will go, left bottom, width, height
+        # cax = h.fig.add_axes([.94, .25, .02, .6])
+        cax = h.fig.add_axes([.40, .0339, .2, .023])
 
-    # Draw the colorbar
-    cbar = h.fig.colorbar(points, cax=cax, orientation='horizontal')
-    cbar.ax.set_title('RMSD relax', fontsize=10)
+        # Get a mappable object with the same colormap as the data
+        points = plt.scatter([], [], c=[], vmin=vmin, vmax=vmax, cmap=cmap)
+        h.map(plt.plot, "amplitude", "score_relax")
 
-    plt.show()
+        # Draw the colorbar
+        cbar = h.fig.colorbar(points, cax=cax, orientation='horizontal')
+        cbar.ax.set_title('RMSD relax', fontsize=10)
+
+        plt.show()
+        # plt.savefig("Fig_mode{0}_rmsd.png".format(m), bbox_inches='tight', pad_inches=0.4, dpi=150)

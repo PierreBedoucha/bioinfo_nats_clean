@@ -1,0 +1,55 @@
+* minimization
+*
+
+set protein 5isv_A_m11_a30.00_s1_0_30.00_SC
+
+! Read in Topology and  Parameter files
+set library ../lib
+set structures ../struct
+
+open unit 1 card read name @library/top_all22_prot.rtf 
+read RTF card unit 1
+close unit 1
+
+open unit 1 card read name @library/par_all22_prot.prm 
+read PARA card unit 1
+close unit 1
+
+!stream @library/toppar_water_ions.str
+
+! Read in PSF and Coordinate file
+
+open read formatted unit 27 name @library/@protein.psf 
+read  psf card unit 27 
+
+open read formatted unit 27 name @structures/@protein-allh.pdb  
+!read coor pdb offset -3 unit 27 
+read coor pdb unit 27 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! energy parameters !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+!energy imgfrq 10 inbfrq 10 cutnb 14.0 ctonnb 10.0 ctofnb 12.0 -
+!  vswitch shift rdie eps 4
+
+!  minimize initial structure
+energy
+mini sd nsteps 50 nprint 5
+mini conj nsteps 50 nprint 5
+!mini abnr nsteps 10000000 nprint 1000 TOLGRAD 0.000000001
+energy
+
+open write formatted unit 27 name @structures/@protein_mini.pdb
+write coor pdb  unit 27
+
+close unit 27
+
+open unit 1 card write name @structures/@protein_mini.crd
+write coordinate card unit 1
+
+close unit 1
+
+
+stop
+
