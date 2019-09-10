@@ -37,17 +37,17 @@ def test_missing_res(filename, file):
                                 else:
                                     atom_cpt += 1
                                     if not is_pdb_restarted:
-                                        start_stop_resid_dict[filename[0:4]] = int(line[22:26].strip())
+                                        start_stop_resid_dict[filename[0:4]] = (old_resid, int(line[22:26].strip()))
                                         is_pdb_restarted = True
                                     if atom_cpt >= 100:
-                                        line = line.replace(line[0:11], "ATOM     {0}{1}{2}".format(str(atom_cpt)[0],
+                                        line = line.replace(line[0:11], "ATOM    {0}{1}{2}".format(str(atom_cpt)[0],
                                                                                                     str(atom_cpt)[1],
                                                                                                     str(atom_cpt)[2]))
                                     elif atom_cpt >= 10:
-                                        line = line.replace(line[0:11], "ATOM      {0}{1}".format(str(atom_cpt)[0],
+                                        line = line.replace(line[0:11], "ATOM     {0}{1}".format(str(atom_cpt)[0],
                                                                                                     str(atom_cpt)[1]))
                                     else:
-                                        line = line.replace(line[0:11], "ATOM       {0}".format(str(atom_cpt)[0]))
+                                        line = line.replace(line[0:11], "ATOM      {0}".format(str(atom_cpt)[0]))
                                     output_2.write("%s" % line)
                     output_1.write("%s" % 'TER\n')
                     output_1.write("%s" % 'END')
@@ -107,6 +107,8 @@ if __name__ == '__main__':
                         line = "set protein {}\n".format(file.replace(".pdb", ""))
                     if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
                         line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+                    elif line.lower().startswith("read coor pdb"):
+                        line = "read coor pdb unit 1\n"
                     line_list.append(line)
             with open("build_{}.inp".format(file.replace(".pdb", "")), "w") as f2:
                 f2.writelines(line_list)
@@ -121,12 +123,13 @@ if __name__ == '__main__':
                             line = "set protein {}\n".format(file.replace("-a.pdb", ""))
                         if file.endswith("-a2.pdb"):
                             line = "set protein {}\n".format(file.replace("-a2.pdb", ""))
-                    if line.lower().startswith("read coor univ unit 10") and read_pdb_starts()[file[0:4]] != 1:
-                        line = "read coor univ unit 10 offset {}\n".format(str(read_pdb_starts()[file[0:4]] - 1))
-                    if line.lower().startswith("read coor univ unit 10") and read_pdb_starts()[file[0:4]] == 1:
-                        line = "read coor univ unit 10"
-                    if line.lower().startswith("read coor univ unit 11"):
-                        line = "read coor univ unit 11 offset {}\n".format(str(start_stop_resid_dict[file[0:4]] - 1))
+                    if line.lower().startswith("read coor pdb unit 10") and read_pdb_starts()[file[0:4]] != 1:
+                        line = "read coor pdb unit 10 offset -{}\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+                    if line.lower().startswith("read coor pdb unit 10") and read_pdb_starts()[file[0:4]] == 1:
+                        line = "read coor pdb unit 10"
+                    if line.lower().startswith("read coor pdb unit 11"):
+                        line = "read coor pdb unit 11 offset -{}\n".format(str(start_stop_resid_dict[file[0:4]][1]
+                                                                               - start_stop_resid_dict[file[0:4]][0]))
                     line_list.append(line)
             if file.endswith("-a.pdb"):
                 name = file.replace("-a.pdb", "")
@@ -176,7 +179,7 @@ if __name__ == '__main__':
                     f2.writelines(line_list2)
             if "minimize_{}.inp".format(name) not in scripts_list:
                 scripts_list.append("minimize_{}.inp".format(name))
-                scripts_build_list.append("minimize_{}.inp".format(name))
+                scripts_mini_list.append("minimize_{}.inp".format(name))
         # elif file.endswith("-a.pdb"):
         #     with open("../data/input/etc/minimize_nats.inp") as f3:
         #         for line in f3.readlines():
@@ -219,9 +222,9 @@ if __name__ == '__main__':
 
     # run build script
     with open("run_build.sh", "w") as f5:
-        f5.write("cd ../struct/")
-        f5.write("for f in `find`; do mv -v \"$f\" \"`echo $f | tr '[A-Z]' '[a-z]'`\"; done")
-        f5.write("cd ../calc/")
+        f5.write("cd ../struct/\n")
+        f5.write("for f in `find`; do mv -v \"$f\" \"`echo $f | tr '[A-Z]' '[a-z]'`\"; done\n")
+        f5.write("cd ../calc/\n")
         for script in scripts_build_list:
             str_line = "/net/orinoco/apps/charmm/c38b2/exec/gnu_xxlarge/charmm_xxlarge < {0} > {1} | ".format(script,
                                                                                                            script.replace(".inp", ".out"))

@@ -20,11 +20,11 @@ close unit 1
 
 ! Read sequence from the PDB coordinate file
 
-OPEN unit 10 READ formatted name ../struct/@protein-a.pdb
+OPEN unit 10 READ card name ../struct/@protein-a.pdb
 READ sequ pdb unit 10
 gener A setup warn
 rewind unit 10
-open unit 11 read formatted name ../struct/@protein-a2.pdb
+open unit 11 read card name ../struct/@protein-a2.pdb
 read sequ pdb unit 11
 gener A2 setup warn
 rewind unit 11
@@ -34,9 +34,9 @@ join A A2
 open unit 1 write formatted name @lib/@protein.psf
 write psf card unit 1
 
-read coor univ unit 10 offset  -1
+read coor pdb unit 10 offset  -1
 close unit 10
-read coor univ unit 11 offset -11
+read coor pdb unit 11 offset -11
 close unit 11
 
 ic purge   ! CLEANUP IC TABLE
