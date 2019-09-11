@@ -213,6 +213,17 @@ if __name__ == '__main__':
         str_line = "scp {} pierreb@doggpil.cbu.uib.no:/net/orinoco/pierreb/charmm/nathalie_charmm/struct/".format(' '.join(files_list))
         f6.write(str_line)
 
+    # transfer mini pdbs back
+    files_mini_list = [x.replace(".pdb", "_mini.pdb").lower() for x in files_list]
+    files_mini_list = [x.replace("-a2", "") for x in files_mini_list]
+    files_mini_list = [x.replace("-a", "") for x in files_mini_list]
+    with open("transfer_struct_mini_doggpil.sh", "w") as f7:
+        str_line = "scp {} pierreb@login.ii.uib.no:./\n".format(' '.join(files_mini_list))
+        f7.write(str_line)
+    with open("transfer_struct_mini_login.sh", "w") as f8:
+        str_line = "scp pierreb@login.ii.uib.no:\{{{0}\}} ./".format(','.join(files_mini_list))
+        f8.write(str_line)
+
     with open("transfer_build-mini_login.sh", "w") as f5:
         str_line = "scp {} pierreb@login.ii.uib.no:~".format(' '.join(scripts_list))
         f5.write(str_line)
