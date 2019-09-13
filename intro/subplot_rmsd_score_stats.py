@@ -10,7 +10,8 @@ import numpy as np
 import Bio.PDB
 import Bio.AlignIO as al
 from sklearn import preprocessing
-
+import glob
+from pathlib import Path
 
 def read_pfam_align():
     file_path = os.path.join("../data/input/etc", "pfam_env.txt")
@@ -148,10 +149,10 @@ def facet_scatter(x, y, c, **kwargs):
 
 
 # GLOBAL VARIABLES
-amplitude_max = 30
+amplitude_max = 0
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook20.csv')
+    train = pd.read_csv('Workbook21.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -162,6 +163,12 @@ if __name__ == '__main__':
                 # start, end = read_pfam_align()[file[0:4]]
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[3], "a{0}.00".format(str(amplitude_max)))
+                temp_filename_ls = file_ref.split("_")[:2]
+                temp_filename_ls.append("*")
+                temp_filename_ls.extend(file_ref.split("_")[3:])
+                temp_filename_ls[5] = "0"
+                filelist = [file for file in glob.glob("_".join(temp_filename_ls))]
+                file_ref = filelist[0]
                 if file.split("_")[-2] != "0.00":
                     # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
                     train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
@@ -171,6 +178,12 @@ if __name__ == '__main__':
                 # start, end = read_pfam_align()[file.split("_")[-8]]
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-5], "a{0}.00".format(str(amplitude_max)))
+                temp_filename_ls = file_ref.split("_")[:5]
+                temp_filename_ls.append("*")
+                temp_filename_ls.extend(file_ref.split("_")[7:])
+                temp_filename_ls[8] = "0"
+                filelist = [file for file in glob.glob("_".join(temp_filename_ls))]
+                file_ref = filelist[0]
                 if file.split("_")[-2] != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
                     # select_CA_align(file, start, end)
@@ -252,7 +265,7 @@ if __name__ == '__main__':
 
     # sns.set_style("whitegrid", {'axes.grid': False, 'axes.edgecolor': 'none'})
 
-    modes=[9,10,12]
+    modes=[7,8,11]
     for m in modes:
         train_mode = train.loc[(train['mode'] == m)]
 

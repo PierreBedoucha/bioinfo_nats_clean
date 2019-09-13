@@ -12,6 +12,16 @@ def read_pdb_starts():
                 pdb_starts_dict[line[0:4]] = int(line_array[1])
     return pdb_starts_dict
 
+def read_pdb_ends():
+    file_path = os.path.join("../data/input/etc", "pdb_ends.txt")
+    pdb_ends_dict = {}
+    with open(file_path) as f1:
+        for line in f1:
+            if not line.startswith("#") and not line.startswith("\n"):
+                line_array = line.split(',')
+                pdb_ends_dict[line[0:4]] = int(line_array[1])
+    return pdb_ends_dict
+
 def test_missing_res(filename, file):
     parser = Bio.PDB.PDBParser(PERMISSIVE=1)
     structure = parser.get_structure(id=filename[0:4], file=file)
@@ -101,22 +111,26 @@ if __name__ == '__main__':
     for file in files_list:
         line_list = list()
         if not file.endswith("-a.pdb") and not file.endswith("-a2.pdb"):
-            with open("../data/input/etc/build_nats.inp") as f1:
+            with open("../data/input/etc/build_mini_nats.inp") as f1:
                 for line in f1.readlines():
                     if line.startswith("set protein"):
                         line = "set protein {}\n".format(file.replace(".pdb", ""))
                     if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
-                        line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+                        # line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+                        line = "read coor pdb unit 3 offset -{}\n".format(str(read_pdb_starts()[file[0:4]] - 1))
                     elif line.lower().startswith("read coor pdb"):
-                        line = "read coor pdb unit 1\n"
+                        line = "read coor pdb unit 3\n"
+                    if line.lower().startswith("cons fix sele resid 1:"):
+                        line = "cons fix sele resid 1:{} .and. -\n".format(str(read_pdb_ends()[file[0:4]] -
+                            (read_pdb_starts()[file[0:4]] - 1)))
                     line_list.append(line)
-            with open("build_{}.inp".format(file.replace(".pdb", "")), "w") as f2:
+            with open("build_mini_{}.inp".format(file.replace(".pdb", "")), "w") as f2:
                 f2.writelines(line_list)
-            scripts_list.append("build_{}.inp".format(file.replace(".pdb", "")))
-            scripts_build_list.append("build_{}.inp".format(file.replace(".pdb", "")))
+            scripts_list.append("build_mini_{}.inp".format(file.replace(".pdb", "")))
+            scripts_build_list.append("build_mini_{}.inp".format(file.replace(".pdb", "")))
         else:
             name = ''
-            with open("../data/input/etc/build_nats_resiude-gap.inp") as f1:
+            with open("../data/input/etc/build_mini_nats_residue-gap.inp") as f1:
                 for line in f1.readlines():
                     if line.startswith("set protein"):
                         if file.endswith("-a.pdb"):
@@ -130,80 +144,83 @@ if __name__ == '__main__':
                     if line.lower().startswith("read coor pdb unit 11"):
                         line = "read coor pdb unit 11 offset -{}\n".format(str(start_stop_resid_dict[file[0:4]][1]
                                                                                - start_stop_resid_dict[file[0:4]][0]))
+                    if line.lower().startswith("cons fix sele resid 1:"):
+                        line = "cons fix sele resid 1:{} .and. -\n".format(str(read_pdb_ends()[file[0:4]] -
+                            (read_pdb_starts()[file[0:4]] - 1)))
                     line_list.append(line)
             if file.endswith("-a.pdb"):
                 name = file.replace("-a.pdb", "")
-                with open("build_{}.inp".format(name), "w") as f2:
+                with open("build_mini_{}.inp".format(name), "w") as f2:
                     f2.writelines(line_list)
             if file.endswith("-a2.pdb"):
                 name = file.replace("-a2.pdb", "")
-                with open("build_{}.inp".format(name), "w") as f2:
+                with open("build_mini_{}.inp".format(name), "w") as f2:
                     f2.writelines(line_list)
-            if "build_{}.inp".format(name) not in scripts_list:
-                scripts_list.append("build_{}.inp".format(name))
-                scripts_build_list.append("build_{}.inp".format(name))
+            if "build_mini_{}.inp".format(name) not in scripts_list:
+                scripts_list.append("build_mini_{}.inp".format(name))
+                scripts_build_list.append("build_mini_{}.inp".format(name))
 
 
-        line_list2 = list()
-        if not file.endswith("-a.pdb") and not file.endswith("-a2.pdb"):
-            with open("../data/input/etc/minimize_nats.inp") as f3:
-                for line in f3.readlines():
-                    if line.startswith("set protein"):
-                        line = "set protein {}\n".format(file.replace(".pdb", ""))
-                    if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
-                        line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
-                    line_list2.append(line)
-            with open("minimize_{}.inp".format(file.replace(".pdb", "")), "w") as f4:
-                f4.writelines(line_list2)
-            scripts_list.append("minimize_{}.inp".format(file.replace(".pdb", "")))
-            scripts_mini_list.append("minimize_{}.inp".format(file.replace(".pdb", "")))
-        else:
-            name = ''
-            with open("../data/input/etc/minimize_nats.inp") as f3:
-                for line in f3.readlines():
-                    if line.startswith("set protein"):
-                        if file.endswith("-a.pdb"):
-                            line = "set protein {}\n".format(file.replace("-a.pdb", ""))
-                        if file.endswith("-a2.pdb"):
-                            line = "set protein {}\n".format(file.replace("-a2.pdb", ""))
-                    if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
-                        line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
-                    line_list2.append(line)
-            if file.endswith("-a.pdb"):
-                name = file.replace("-a.pdb", "")
-                with open("minimize_{}.inp".format(name), "w") as f2:
-                    f2.writelines(line_list2)
-            if file.endswith("-a2.pdb"):
-                name = file.replace("-a2.pdb", "")
-                with open("minimize_{}.inp".format(name), "w") as f2:
-                    f2.writelines(line_list2)
-            if "minimize_{}.inp".format(name) not in scripts_list:
-                scripts_list.append("minimize_{}.inp".format(name))
-                scripts_mini_list.append("minimize_{}.inp".format(name))
-        # elif file.endswith("-a.pdb"):
+        # line_list2 = list()
+        # if not file.endswith("-a.pdb") and not file.endswith("-a2.pdb"):
         #     with open("../data/input/etc/minimize_nats.inp") as f3:
         #         for line in f3.readlines():
         #             if line.startswith("set protein"):
-        #                 line = "set protein {}\n".format(file.replace("-a.pdb", ""))
+        #                 line = "set protein {}\n".format(file.replace(".pdb", ""))
         #             if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
         #                 line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
         #             line_list2.append(line)
-        #     with open("minimize_{}.inp".format(file.replace("-a.pdb", "")), "w") as f4:
+        #     with open("minimize_{}.inp".format(file.replace(".pdb", "")), "w") as f4:
         #         f4.writelines(line_list2)
-        #     scripts_list.append("minimize_{}.inp".format(file.replace("-a.pdb", "")))
-        #     scripts_mini_list.append("minimize_{}.inp".format(file.replace("-a.pdb", "")))
-        # elif file.endswith("-a2.pdb"):
+        #     scripts_list.append("minimize_{}.inp".format(file.replace(".pdb", "")))
+        #     scripts_mini_list.append("minimize_{}.inp".format(file.replace(".pdb", "")))
+        # else:
+        #     name = ''
         #     with open("../data/input/etc/minimize_nats.inp") as f3:
         #         for line in f3.readlines():
         #             if line.startswith("set protein"):
-        #                 line = "set protein {}\n".format(file.replace("-a2.pdb", ""))
+        #                 if file.endswith("-a.pdb"):
+        #                     line = "set protein {}\n".format(file.replace("-a.pdb", ""))
+        #                 if file.endswith("-a2.pdb"):
+        #                     line = "set protein {}\n".format(file.replace("-a2.pdb", ""))
         #             if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
         #                 line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
         #             line_list2.append(line)
-        #     with open("minimize_{}.inp".format(file.replace("-a2.pdb", "")), "w") as f4:
-        #         f4.writelines(line_list2)
-        #     scripts_list.append("minimize_{}.inp".format(file.replace("-a2.pdb", "")))
-        #     scripts_mini_list.append("minimize_{}.inp".format(file.replace("-a2.pdb", "")))
+        #     if file.endswith("-a.pdb"):
+        #         name = file.replace("-a.pdb", "")
+        #         with open("minimize_{}.inp".format(name), "w") as f2:
+        #             f2.writelines(line_list2)
+        #     if file.endswith("-a2.pdb"):
+        #         name = file.replace("-a2.pdb", "")
+        #         with open("minimize_{}.inp".format(name), "w") as f2:
+        #             f2.writelines(line_list2)
+        #     if "minimize_{}.inp".format(name) not in scripts_list:
+        #         scripts_list.append("minimize_{}.inp".format(name))
+        #         scripts_mini_list.append("minimize_{}.inp".format(name))
+        # # elif file.endswith("-a.pdb"):
+        # #     with open("../data/input/etc/minimize_nats.inp") as f3:
+        # #         for line in f3.readlines():
+        # #             if line.startswith("set protein"):
+        # #                 line = "set protein {}\n".format(file.replace("-a.pdb", ""))
+        # #             if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
+        # #                 line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+        # #             line_list2.append(line)
+        # #     with open("minimize_{}.inp".format(file.replace("-a.pdb", "")), "w") as f4:
+        # #         f4.writelines(line_list2)
+        # #     scripts_list.append("minimize_{}.inp".format(file.replace("-a.pdb", "")))
+        # #     scripts_mini_list.append("minimize_{}.inp".format(file.replace("-a.pdb", "")))
+        # # elif file.endswith("-a2.pdb"):
+        # #     with open("../data/input/etc/minimize_nats.inp") as f3:
+        # #         for line in f3.readlines():
+        # #             if line.startswith("set protein"):
+        # #                 line = "set protein {}\n".format(file.replace("-a2.pdb", ""))
+        # #             if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
+        # #                 line = "read coor pdb offset -{} unit 1\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+        # #             line_list2.append(line)
+        # #     with open("minimize_{}.inp".format(file.replace("-a2.pdb", "")), "w") as f4:
+        # #         f4.writelines(line_list2)
+        # #     scripts_list.append("minimize_{}.inp".format(file.replace("-a2.pdb", "")))
+        # #     scripts_mini_list.append("minimize_{}.inp".format(file.replace("-a2.pdb", "")))
 
     # files_list = [x.replace(".pdb", "") for x in files_list]
     with open("transfer_script_login.sh", "w") as f5:
@@ -244,12 +261,12 @@ if __name__ == '__main__':
         filehandle.seek(-1, os.SEEK_END)
         filehandle.truncate()
 
-    # run minimize script
-    with open("run_minimize.sh", "w") as f5:
-        for script in scripts_mini_list:
-            str_line = "/net/orinoco/apps/charmm/c38b2/exec/gnu_xxlarge/charmm_xxlarge < {0} > {1} | ".format(script,
-                                                                                                           script.replace(".inp", ".out"))
-            f5.write(str_line)
-    with open("run_minimize.sh", 'rb+') as filehandle:
-        filehandle.seek(-1, os.SEEK_END)
-        filehandle.truncate()
+    ## run minimize script
+    # with open("run_minimize.sh", "w") as f5:
+    #     for script in scripts_mini_list:
+    #         str_line = "/net/orinoco/apps/charmm/c38b2/exec/gnu_xxlarge/charmm_xxlarge < {0} > {1} | ".format(script,
+    #                                                                                                        script.replace(".inp", ".out"))
+    #         f5.write(str_line)
+    # with open("run_minimize.sh", 'rb+') as filehandle:
+    #     filehandle.seek(-1, os.SEEK_END)
+    #     filehandle.truncate()

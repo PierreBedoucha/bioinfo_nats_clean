@@ -105,40 +105,43 @@ nb_of_repeats = 1
 if __name__ == '__main__':
     pdb_occupancy()
 
-    list_files = [x for x in os.listdir(".") if x.endswith(".pdb") and 'minimized' not in x]
-    init(extra_options=" ".join(rosetta_options))
-    scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
-    for file in list_files:
-        pose = Pose()
-        pose_from_file(pose, file)
-        pose_score = scorefxn(pose)
-        score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
+    list_files_relaxed = [x for x in os.listdir(".") if x.endswith(".pdb") and 'minimized' in x]
+    list_files = [x for x in os.listdir(".") if x.endswith(".pdb") and 'minimized' not in x
+                  and ("minimized_fast_CST_{}_".format(str(nb_of_repeats)) + x) not in list_files_relaxed]
+    if list_files:
+        init(extra_options=" ".join(rosetta_options))
+        scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
+        for file in list_files:
+            pose = Pose()
+            pose_from_file(pose, file)
+            pose_score = scorefxn(pose)
+            score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
-    manager = mp.Manager()  # create SyncManager
-    matches = manager.list()  # create a shared list here
-    link_matches = partial(score_proteins, matches)  # create one arg callable to
+        manager = mp.Manager()  # create SyncManager
+        matches = manager.list()  # create a shared list here
+        link_matches = partial(score_proteins, matches)  # create one arg callable to
 
-    #Repeating the relax/scoring
-    list_files_rep = []
-    for file in list_files:
-        for i in list(range(1, nb_of_repeats+1, 1)):
-            list_files_rep.append(str(i) + "_" + file)
+        #Repeating the relax/scoring
+        list_files_rep = []
+        for file in list_files:
+            for i in list(range(1, nb_of_repeats+1, 1)):
+                list_files_rep.append(str(i) + "_" + file)
 
-    pool = mp.Pool(psutil.cpu_count(logical = False))
-    pool.map(link_matches, list_files_rep)  # apply partial to files list
-    pool.close()
-    pool.join()
-    print(matches)
+        pool = mp.Pool(psutil.cpu_count(logical = False))
+        pool.map(link_matches, list_files_rep)  # apply partial to files list
+        pool.close()
+        pool.join()
+        print(matches)
 
-    import csv
-    wtr = csv.writer(open('pyrosetta_out.csv', 'w+'), delimiter=',', lineterminator='\n', quoting=csv.QUOTE_NONE,
-                     escapechar='\\')  #
-    wtr.writerow(['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax'])
+        import csv
+        wtr = csv.writer(open('pyrosetta_out.csv', 'w+'), delimiter=',', lineterminator='\n', quoting=csv.QUOTE_NONE,
+                         escapechar='\\')  #
+        wtr.writerow(['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax'])
 
-    padded_list = [0] * (nb_of_repeats * len(score_init_list))  # [0,0,0,0,0,0,0,0,0,0,0]
-    padded_list[::nb_of_repeats] = score_init_list
-    padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
+        padded_list = [0] * (nb_of_repeats * len(score_init_list))  # [0,0,0,0,0,0,0,0,0,0,0]
+        padded_list[::nb_of_repeats] = score_init_list
+        padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
 
-    l = [(x[0] for x in matches), (x for x in padded_list_rmsd), (x for x in padded_list),
-         (x for x in padded_list_rmsd), (x[1] for x in matches)]
-    wtr.writerows([i for i in zip(*l)])
+        l = [(x[0] for x in matches), (x for x in padded_list_rmsd), (x for x in padded_list),
+             (x for x in padded_list_rmsd), (x[1] for x in matches)]
+        wtr.writerows([i for i in zip(*l)])
