@@ -4,3 +4,17 @@
 *.png
 *.inp
 ROSETTA_CRASH.log
+*.log
+*.pdf
+*.lan
+*.nb
+*.new
+*.out
+*.pln
+*.rin
+*.sco
+*.sdh
+*.sum
+*.ps
+*.dis
+*.prm

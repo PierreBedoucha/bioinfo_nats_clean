@@ -12,6 +12,18 @@ import Bio.AlignIO as al
 from sklearn import preprocessing
 import glob
 from pathlib import Path
+import re
+from os.path import realpath, basename
+
+def read_pdb_resolution():
+    file_path = os.path.join("../data/input/etc", "pdb_starts.txt")
+    pdb_res_dict = {}
+    with open(file_path) as f1:
+        for line in f1:
+            if not line.startswith("#") and not line.startswith("\n"):
+                line_array = line.split(',')
+                pdb_res_dict[line[0:4]] = int(line_array[1])
+    return pdb_res_dict
 
 def read_pfam_align():
     file_path = os.path.join("../data/input/etc", "pfam_env.txt")
@@ -50,18 +62,24 @@ def read_msa_fasta():
 def compute_rmsd_align(pdb_path1, pdb_path2):
     sum_dist_sq = 0
     atom_cpt = 1
+    if pdb_path1.endswith("mini.pdb") and pdb_path2.endswith("mini.pdb"):
+        snap_count = -4
+        pdbid_count = -9
+    else:
+        snap_count = -3
+        pdbid_count = -8
     file1_ref_array = pdb_path1.split('_')
     file2_ref_array = pdb_path2.split('_')
     if not os.path.exists(pdb_path1):
-        file1_ref_array[-3] = "1"
+        file1_ref_array[snap_count] = "1"
         pdb_path1 = "_".join(file1_ref_array)
     if not os.path.exists(pdb_path2):
-        file2_ref_array[-3] = "1"
+        file2_ref_array[snap_count] = "1"
         pdb_path2 = "_".join(file2_ref_array)
     # pdb1_res_list = read_msa_fasta()[file1_ref_array[-8]]
     # pdb2_res_list = read_msa_fasta()[file2_ref_array[-8]]
-    pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
-    pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
+    pdb1_res_list = ca_align_dict[file1_ref_array[pdbid_count]]
+    pdb2_res_list = ca_align_dict[file2_ref_array[pdbid_count]]
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
             # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
@@ -147,12 +165,78 @@ def facet_scatter(x, y, c, **kwargs):
     kwargs.pop("color")
     plt.scatter(x, y, c=c, **kwargs)
 
+def facet_stairs(x, y, **kwargs):
+    """Draw scatterplot with point colors from a faceted DataFrame columns."""
+    plt.scatter(x, y, **kwargs)
+
+def facet_line(y, **kwargs):
+    # plt.axhline(y.mean(), linestyle="--",
+    #             color='gray')
+    # plt.axhspan(y.mean() + y.std(), y.min(), facecolor='gray', alpha=0.1)
+
+    # p_25, p_75 = np.percentile(y, [25, 75])
+    # iqr = p_75 - p_25
+    # upper_bound = p_75 + 1.5 * iqr
+    # lower_bound = p_25 - 1.5 * iqr
+    # plt.axhline(y.median(), linestyle="--",
+    #             color="gray")
+    # plt.axhspan(p_75, y.min(), facecolor='gray', alpha=0.1)
+    #
+    # t = plt.text(3, p_75, round(p_75, 2), horizontalalignment='right',
+    #              verticalalignment='center', color='gray')
+
+    plt.axhline(-2.0, linestyle="--",
+                color='gray')
+    t = plt.text(3, -2.0, -2.0, horizontalalignment='right',
+                 verticalalignment='center', color='gray')
+
+def procheck(sc_pdbpath, pdb_resolution):
+    import shutil
+    import subprocess
+    os.environ['prodir'] = '~/Software/procheck/procheck'
+    if sc_pdbpath[:-4] + ".sum" not in os.listdir("."):
+        p = subprocess.run("{0} {1} {2}".format('~/Software/procheck/procheck/procheck.scr', sc_pdbpath, pdb_resolution),
+                           shell=True,
+                           stderr=subprocess.PIPE)
+        procheck_error = p.stderr.decode('utf-8')
+
+    # Get the value from the corresponding .sum file
+    #  | Ramachandran plot: 91.5 % core 8.5 % allow 0.0 % gener 0.0 % disall |
+    chars = []
+    output_dict = {}
+    with open("./" + sc_pdbpath[:-4] + ".sum") as f1:
+        for line in f1:
+            if not line.startswith("#") and not line.startswith("\n"):
+                if "disall" in line:
+                    line_array = line.split(' ')
+                    chars.extend(line_array[-3])
+                    output_dict['disall'] =  float(''.join(chars[:-1]))
+                if 'Bad contacts' in line:
+                    line_array = line.split(' ')
+                    output_dict['bad_contacts'] = float(line_array[-2])
+                if 'Bond len/angle' in line:
+                    line_array = re.findall(r"[-+]?\d*\.\d+|\d+", line)
+                    output_dict['bond_lenangle'] = float(line_array[0])
+                if 'G-factors' in line:
+                    line_array = line.split(' ')
+                    output_dict['g_factors'] = float(line_array[-2])
+                if 'M/c bond lengths' in line:
+                    line_array = re.findall(r"[-+]?\d*\.\d+|\d+", line)
+                    output_dict['bond_lengths_highlighted'] = float(line_array[1])
+                    if 'off graph' in line:
+                        output_dict['bond_lengths_off'] = float(line_array[2])
+                if 'M/c bond angles' in line:
+                    line_array = re.findall(r"[-+]?\d*\.\d+|\d+", line)
+                    output_dict['bond_angles_highlighted'] = float(line_array[1])
+                    if 'off graph' in line:
+                        output_dict['bond_angles_off'] = float(line_array[2])
+    return output_dict
 
 # GLOBAL VARIABLES
 amplitude_max = 0
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook21.csv')
+    train = pd.read_csv('Workbook31.csv').dropna()
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -161,7 +245,12 @@ if __name__ == '__main__':
         if file.endswith(".pdb"):
             if 'minimized' not in file:
                 # start, end = read_pfam_align()[file[0:4]]
-                file_ref_temp = file.replace(file.split("_")[-2], "0.00")
+                if file.endswith("mini.pdb"):
+                    file_ref_temp = file.replace(file.split("_")[-3], "0.00")
+                    amplitude = file.split("_")[-3]
+                else:
+                    file_ref_temp = file.replace(file.split("_")[-2], "0.00")
+                    amplitude = file.split("_")[-2]
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[3], "a{0}.00".format(str(amplitude_max)))
                 temp_filename_ls = file_ref.split("_")[:2]
                 temp_filename_ls.append("*")
@@ -169,26 +258,43 @@ if __name__ == '__main__':
                 temp_filename_ls[5] = "0"
                 filelist = [file for file in glob.glob("_".join(temp_filename_ls))]
                 file_ref = filelist[0]
-                if file.split("_")[-2] != "0.00":
+                if amplitude != "0.00":
                     # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
-                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
+                    if file.endswith("mini.pdb"):
+                        train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
+                    else:
+                        train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
                 else:
-                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = 0.00
+                    if file.endswith("mini.pdb"):
+                        train.loc[
+                            train.pdb_filename == "1_" + file, 'rmsd_init'] = 0.00
+                    else:
+                        train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = 0.00
             elif 'minimized' in file:
+                if file.endswith("mini.pdb"):
+                    file_ref_temp = file.replace(file.split("_")[-3], "0.00")
+                    amplitude = file.split("_")[-3]
+                    file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-6], "a{0}.00".format(str(amplitude_max)))
+                    pdbid_count = -9
+                    snap_count = -4
+                else:
+                    file_ref_temp = file.replace(file.split("_")[-2], "0.00")
+                    amplitude = file.split("_")[-2]
+                    file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-5], "a{0}.00".format(str(amplitude_max)))
+                    pdbid_count = -8
+                    snap_count = -3
                 # start, end = read_pfam_align()[file.split("_")[-8]]
-                file_ref_temp = file.replace(file.split("_")[-2], "0.00")
-                file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-5], "a{0}.00".format(str(amplitude_max)))
                 temp_filename_ls = file_ref.split("_")[:5]
                 temp_filename_ls.append("*")
                 temp_filename_ls.extend(file_ref.split("_")[7:])
                 temp_filename_ls[8] = "0"
                 filelist = [file for file in glob.glob("_".join(temp_filename_ls))]
                 file_ref = filelist[0]
-                if file.split("_")[-2] != "0.00":
+                if amplitude != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
                     # select_CA_align(file, start, end)
                     # res_to_be_aligned = ca_align_list
-                    res_to_be_aligned = ca_align_dict[file.split("_")[-8]]
+                    res_to_be_aligned = ca_align_dict[file.split("_")[pdbid_count]]
                     pdb_parser = Bio.PDB.PDBParser(QUIET=True)
                     # Get the structures
                     try:
@@ -196,7 +302,7 @@ if __name__ == '__main__':
                     except FileNotFoundError as err:
                         print("You chose the 0.00 file with tag 1 instead of 2. Retrying...")
                         file_ref_array = file_ref.split('_')
-                        file_ref_array[-3] = "1"
+                        file_ref_array[snap_count] = "1"
                         file_ref = "_".join(file_ref_array)
                         ref_structure = pdb_parser.get_structure("reference", file_ref)
                     sample_structure = pdb_parser.get_structure("sample", file)
@@ -221,27 +327,73 @@ if __name__ == '__main__':
                     super_imposer.set_atoms(ref_atoms, sample_atoms)
                     super_imposer.apply(sample_model.get_atoms())
 
-                    file = '_'.join(file.split('_')[-8:])
-                    # train.loc[train.pdb_filename == file, 'rmsd_relax'] = compute_rmsd(file, file_ref, start, end)
-                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_relax'] = super_imposer.rms
+                    file_base = '_'.join(file.split('_')[pdbid_count:])
+                    # train.loc[train.pdb_filename == file_base, 'rmsd_relax'] = compute_rmsd(file_base, file_ref, start, end)
+                    if file_base.endswith("mini.pdb"):
+                        train.loc[
+                            train.pdb_filename == "1_" + file_base, 'rmsd_relax'] = super_imposer.rms
+                    else:
+                        train.loc[train.pdb_filename == "1_" + file_base, 'rmsd_relax'] = super_imposer.rms
                 else:
                     file_array = file.split('_')
-                    file = "_".join(file_array[-8:])
-                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_relax'] = 0.00
+                    file_base = "_".join(file_array[pdbid_count:])
+                    if file_base.endswith("mini.pdb"):
+                        train.loc[
+                            train.pdb_filename == "1_" + file_base, 'rmsd_relax'] = 0.00
+                    else:
+                        train.loc[train.pdb_filename == "1_" + file_base, 'rmsd_relax'] = 0.00
+
+                procheck_dict = procheck(file, read_pdb_resolution()[file_base.split("_")[pdbid_count]])
+                train.loc[train.pdb_filename == "1_" + file_base, 'disall'] = procheck_dict['disall']
+                train.loc[train.pdb_filename == "1_" + file_base, 'bad_contacts'] = procheck_dict['bad_contacts']
+                train.loc[train.pdb_filename == "1_" + file_base, 'bond_lenangle'] = procheck_dict['bond_lenangle']
+                train.loc[train.pdb_filename == "1_" + file_base, 'g_factors'] = procheck_dict['g_factors']
+                train.loc[train.pdb_filename == "1_" + file_base, 'bond_lengths_highlighted'] = procheck_dict[
+                    'bond_lengths_highlighted']
+                if 'bond_lengths_off' in procheck_dict:
+                    train.loc[train.pdb_filename == "1_" + file_base, 'bond_lengths_off'] = procheck_dict[
+                        'bond_lengths_off']
+                else:
+                    train.loc[train.pdb_filename == "1_" + file_base, 'bond_lengths_off'] = 0.00
+                train.loc[train.pdb_filename == "1_" + file_base, 'bond_angles_highlighted'] = procheck_dict[
+                    'bond_angles_highlighted']
+                if 'bond_angles_off' in procheck_dict:
+                    train.loc[train.pdb_filename == "1_" + file_base, 'bond_angles_off'] = procheck_dict[
+                        'bond_angles_off']
+                else:
+                    train.loc[train.pdb_filename == "1_" + file_base, 'bond_angles_off'] = 0.00
 
     # train.set_index('pdb_filename', inplace=True)
     train.to_csv("test_out.csv", sep=';', encoding='utf-8')
 
-    new = train["pdb_filename"].str.split("_", n=9, expand=True)
-    train['pdbid'] = new[1]
+    if train["pdb_filename"].str.endswith("mini.pdb").any():
+        if train["pdb_filename"].str.startswith("minimized").any():
+            new = train["pdb_filename"].str.split("_", n=13, expand=True)
+            pdbid_start = 4
+            amplitude_start = 10
+            repeat_start = 3
+            mode_start = 6
+        else:
+            new = train["pdb_filename"].str.split("_", n=10, expand=True)
+            pdbid_start = 1
+            amplitude_start = 7
+            repeat_start = 0
+            mode_start = 3
+    else:
+        new = train["pdb_filename"].str.split("_", n=9, expand=True)
+        pdbid_start = 1
+        amplitude_start = 7
+        repeat_start = 0
+        mode_start = 3
+    train['pdbid'] = new[pdbid_start]
     # new data frame with split value columns
-    train['amplitude'] = new[7]
+    train['amplitude'] = new[amplitude_start]
     train['amplitude'] = train['amplitude'].astype(float)
 
-    train['repeat'] = new[0]
+    train['repeat'] = new[repeat_start]
     train['repeat'] = train['repeat'].astype(int)
 
-    train['mode'] = new[3].str.slice(1)
+    train['mode'] = new[mode_start].str.slice(1)
     train['mode'] = train['mode'].astype(int)
 
     column_names_to_normalize = ['score_init']
@@ -265,13 +417,18 @@ if __name__ == '__main__':
 
     # sns.set_style("whitegrid", {'axes.grid': False, 'axes.edgecolor': 'none'})
 
-    modes=[7,8,11]
+    train['mean'] = grouped['score_relax'].transform('mean')
+    train['std'] = grouped['score_relax'].transform('std')
+
+    # modes = [7]
+    modes = [7, 8, 9, 10, 11, 12]
+    # modes = [10, 11, 12]
     for m in modes:
         train_mode = train.loc[(train['mode'] == m)]
 
         # h = sns.FacetGrid(train, col="pdbid", hue='pdbid', col_wrap=7, sharey='row', sharex='col', margin_titles=True)
         # h = sns.FacetGrid(train, col="pdbid", palette = 'seismic', gridspec_kws={"hspace":0.4}, sharey=False, sharex=True)
-        h = sns.FacetGrid(train_mode, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
+        h = sns.FacetGrid(train_mode, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=4, height=2, aspect=1)
         # h.map(f, "amplitude", "score_init", "rmsd_init", scale=.7, markers="")
 
         vmin = train_mode['rmsd_relax'].min()
@@ -287,6 +444,8 @@ if __name__ == '__main__':
         # h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
         h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, vmin=vmin, vmax=vmax, cmap=cmap)
 
+        h.map(facet_line, "score_relax")
+
         # Make space for the colorbar
         # h.fig.subplots_adjust(right=.92)
         # plt.tight_layout()
@@ -301,7 +460,60 @@ if __name__ == '__main__':
 
         # Draw the colorbar
         cbar = h.fig.colorbar(points, cax=cax, orientation='horizontal')
-        cbar.ax.set_title('RMSD relax', fontsize=10)
+        cbar.ax.set_title("RMSD relax" + " ($\AA$)", fontsize=10)
 
         plt.show()
         # plt.savefig("Fig_mode{0}_rmsd.png".format(m), bbox_inches='tight', pad_inches=0.4, dpi=150)
+
+        # i = sns.FacetGrid(train_mode, col="pdbid", palette='seismic', sharey=False, sharex=False, col_wrap=4, height=2,
+        #                   aspect=1)
+        # i.map(facet_stairs, "rmsd_relax", "disall")
+        # i.map(facet_stairs, "rmsd_relax", "bad_contacts")
+        # i.map(facet_stairs, "rmsd_relax", "bond_lenangle")
+        # i.map(facet_stairs, "rmsd_relax", "g_factors")
+        # i.map(facet_stairs, "rmsd_relax", "bond_lengths_highlighted")
+        # i.map(facet_stairs, "rmsd_relax", "bond_lengths_off")
+        # i.map(facet_stairs, "rmsd_relax", "bond_angles_highlighted")
+        # i.map(facet_stairs, "rmsd_relax", "bond_angles_off")
+        # plt.show()
+
+        meltCov = pd.melt(train_mode, id_vars=['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax'
+                                               ,'pdbid', 'amplitude', 'repeat', 'mode', 'mean', 'std'], var_name='procheck')
+        # g = sns.FacetGrid(meltCov, col='pdbid', hue='procheck')
+        # g = sns.FacetGrid(meltCov, col='pdbid', hue='procheck', sharey=False, sharex=True)
+
+        group_pdbid = meltCov.groupby(["pdbid"])
+        for i in range(0, len(list(group_pdbid))):
+            result = list(group_pdbid)[i][1]
+
+            g = sns.FacetGrid(result, col='procheck', palette='seismic', sharey=False, sharex=True, col_wrap=4, height=2)
+            g.map(plt.scatter, 'amplitude', 'value')
+            g.map(plt.plot, 'amplitude', 'value')
+            # g.fig.tight_layout()
+            g.fig.suptitle('{0} - mode{1}'.format(result['pdbid'].iloc[-1], m))
+            # plt.title('{0} - mode{1}'.format(result['pdbid'].iloc[-1], m), loc='left')
+            g.fig.subplots_adjust(top=.85)
+            axes = g.axes.flatten()
+            axes[0].set_title("Disallowed")
+            axes[1].set_title("Bad contacts")
+            axes[2].set_title("Bond len/angle")
+            axes[3].set_title("G-factors")
+            axes[4].set_title("Bond len hlghtd")
+            axes[5].set_title("Bond len off")
+            axes[6].set_title("Bond angle hlghtd")
+            axes[7].set_title("Bond angle off")
+            # plt.subplots_adjust(hspace=0.4, wspace=0.4)
+            plt.subplots_adjust(wspace=0.4)
+            # g.map(sns.lineplot, 'amplitude', 'value', markers=True)
+            # g.set_xticklabels(rotation=45)
+            # g.add_legend()
+            # plt.legend(loc='lower left')
+            # g.fig.get_axes()[0].legend(loc='lower left')
+            # plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+            #           ncol=4, mode="expand", borderaxespad=0.)
+            # plt.legend(bbox_to_anchor=(0., 1.02, 0.5, .102), loc='lower left',
+            #            ncol=2, mode="expand", borderaxespad=0.)
+            plt.savefig("Fig_mode{0}_procheck_{1}.png".format(m, result['pdbid'].iloc[-1]),
+                        bbox_inches='tight', pad_inches=0.4, dpi=300)
+            # plt.show()
+

@@ -38,7 +38,7 @@ rosetta_options = ["-ignore_unrecognized_res false",
                    "-flip_HNQ",
                    "-no_optH false",
                    "-relax:constrain_relax_to_start_coords",
-                   "-relax:coord_constrain_sidechains",
+                   # "-relax:coord_constrain_sidechains",
                    "-relax:ramp_constraints false",
                    "-constant_seed",
                    "-no_his_his_pairE",
@@ -77,6 +77,8 @@ def pdb_occupancy():
                         if line[0:6] == 'ATOM  ':
                             temp = line[50:60].replace(line[54:60], '{:6.2f}'.format(1.0))
                             line = line.replace(line[50:60], temp)
+                            if not line.endswith('\n'):
+                                line = line + '\n'
                             if line[17:20] == 'HSD' or line[17:20] == 'HSE':
                                 line = line.replace(line[17:20], 'HIS')
                             if line[17:20] == 'SER' and line[12:16] == ' O  ':
@@ -85,7 +87,12 @@ def pdb_occupancy():
                                 line = line.replace(line[17:20], 'CYS ')
                             if chains is None:
                                 new_file.write("%s" % line)
-                            elif line[21:22] in chains:
+                            elif line[21:22] in chains and len(chains)==1:
+                                # line = line.replace(line[21:22], "{0}".format(chains[0]))
+                                new_file.write("%s" % line)
+                            elif len(chains)==1:
+                                temp = line[21:30].replace(line[21:30], line[21:30])
+                                line = line.replace(line[21:30], chains[0] + line[22:30])
                                 new_file.write("%s" % line)
             # Remove original file
             remove(file)
@@ -136,12 +143,18 @@ if __name__ == '__main__':
         import csv
         wtr = csv.writer(open('pyrosetta_out.csv', 'w+'), delimiter=',', lineterminator='\n', quoting=csv.QUOTE_NONE,
                          escapechar='\\')  #
-        wtr.writerow(['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'score_relax'])
+        wtr.writerow(['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'disall', 'bad_contacts', 'bond_lenangle',
+                      'g_factors', 'bond_lengths_highlighted', 'bond_lengths_off', 'bond_angles_highlighted',
+                      'bond_angles_off',
+                      'score_relax'])
 
         padded_list = [0] * (nb_of_repeats * len(score_init_list))  # [0,0,0,0,0,0,0,0,0,0,0]
         padded_list[::nb_of_repeats] = score_init_list
         padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
 
         l = [(x[0] for x in matches), (x for x in padded_list_rmsd), (x for x in padded_list),
-             (x for x in padded_list_rmsd), (x[1] for x in matches)]
+             (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
+             (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
+             (x for x in padded_list_rmsd),
+             (x[1] for x in matches)]
         wtr.writerows([i for i in zip(*l)])
