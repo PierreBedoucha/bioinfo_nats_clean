@@ -1,7 +1,5 @@
 import pandas as pd
 import seaborn as sns
-from tempfile import mkstemp
-from shutil import move
 import os
 import matplotlib.pyplot as plt
 import math
@@ -10,10 +8,21 @@ import numpy as np
 import Bio.PDB
 import Bio.AlignIO as al
 from sklearn import preprocessing
-import matplotlib.ticker as ticker
+
+"""
+The script analyses the obtained Rosetta Energy Scores for all the structures of the dataset (12 pdbs) for the specific
+case when 5 replicates have been computed for 4 negative amplitudes. It produces a facet grid, for the first mode 7
+only, of the boxplots per amplitudes. The energy score is normalized per structure residue.
+"""
 
 
 def read_pfam_align():
+    """
+    Reads multiple sequence alignment profile from pfam. It determines the envelope (start and end) of the GNAT fold
+    Reads values from pfam_env.txt file in ../data/input/etc
+    :return: Dictionary. Keys: structure pdb id, Values:
+    :rtype: dict
+    """
     file_path = os.path.join("../data/input/etc", "pfam_env.txt")
     pdb_align_dict = {}
     with open(file_path) as f1:
@@ -22,7 +31,13 @@ def read_pfam_align():
                 pdb_align_dict[line[0:4]] = (int(line[15:17]), int(line[21:24]))
     return pdb_align_dict
 
+
 def read_pdb_starts():
+    """
+    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
+    :return: Dictionary. Keys: structure pdb id, Values: starting index
+    :rtype: dict
+    """
     file_path = os.path.join("../data/input/etc", "pdb_starts.txt")
     pdb_starts_dict = {}
     with open(file_path) as f1:
@@ -32,9 +47,15 @@ def read_pdb_starts():
                 pdb_starts_dict[line[0:4]] = int(line_array[1])
     return pdb_starts_dict
 
+
 def read_msa_fasta():
-    pdb_align_dict = {'3tfy':[],'5isv':[],'4pv6':[],'2z0z':[],'1s7l':[],'2x7b':[],'3igr':[],'5k18':[],'2cns':[],
-                      '5hh0':[],'5wjd':[],'5icv':[],'4kvm':[],'4u9v':[],}
+    """
+    Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
+    :return:
+    """
+    pdb_align_dict = {'3tfy': [], '5isv': [], '4pv6': [], '2z0z': [], '1s7l': [], '2x7b': [], '3igr': [], '5k18': [],
+                      '2cns': [],
+                      '5hh0': [], '5wjd': [], '5icv': [], '4kvm': [], '4u9v': [], }
     file_path = os.path.join("../data/input/etc", "nats_alignment.afasta")
     records = al.read(open(file_path), "fasta")
     tlist = list(zip(*records))
@@ -47,7 +68,14 @@ def read_msa_fasta():
                     pdb_align_dict[rec.id[0:4]].append(res_cpt + read_pdb_starts()[rec.id[0:4]])
     return pdb_align_dict
 
+
 def compute_rmsd_align(pdb_path1, pdb_path2):
+    """
+
+    @param pdb_path1:
+    @param pdb_path2:
+    @return:
+    """
     sum_dist_sq = 0
     atom_cpt = 1
     file1_ref_array = pdb_path1.split('_')
@@ -85,17 +113,26 @@ def compute_rmsd_align(pdb_path1, pdb_path2):
     rmsd = math.sqrt(sum_dist_sq / atom_cpt)
     return rmsd
 
+
 def compute_rmsd(pdb_path1, pdb_path2, start, end):
+    """
+
+    :param pdb_path1:
+    :param pdb_path2:
+    :param start:
+    :param end:
+    :return:
+    """
     sum_dist_sq = 0
     atom_cpt = 1
     if not os.path.exists(pdb_path1):
-        file_ref_array = pdb_path1.split('_')
-        file_ref_array[-3] = "1"
-        pdb_path1 = "_".join(file_ref_array)
+        pdb_ref_array = pdb_path1.split('_')
+        pdb_ref_array[-3] = "1"
+        pdb_path1 = "_".join(pdb_ref_array)
     if not os.path.exists(pdb_path2):
-        file_ref_array = pdb_path2.split('_')
-        file_ref_array[-3] = "1"
-        pdb_path2 = "_".join(file_ref_array)
+        pdb_ref_array = pdb_path2.split('_')
+        pdb_ref_array[-3] = "1"
+        pdb_path2 = "_".join(pdb_ref_array)
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
             # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
@@ -119,7 +156,15 @@ def compute_rmsd(pdb_path1, pdb_path2, start, end):
     rmsd = math.sqrt(sum_dist_sq / atom_cpt)
     return rmsd
 
-def select_CA_align(pdb_path, start, end):
+
+def select_ca_align(pdb_path, start, end):
+    """
+
+    :param pdb_path:
+    :param start:
+    :param end:
+    :return:
+    """
     with open(pdb_path) as f1:
         for line in f1:
             if 'ATOM' in line[0:6] and ' CA ' in line[12:16]:
@@ -128,26 +173,42 @@ def select_CA_align(pdb_path, start, end):
                     # ca_align_list.append(int(line[6:11].strip())) # Atom id
                     ca_align_list.append(int(line[23:26].strip()))  # Resid
 
+
 # Global variables (Ugly)
 ca_align_list = []
 ca_align_dict = read_msa_fasta()
 
 
-def f(x,y,z, **kwargs):
-    ax = sns.pointplot(x,y,**kwargs)
+def f(x, y, z, **kwargs):
+    """
+
+    :param x:
+    :param y:
+    :param z:
+    :param kwargs:
+    :return:
+    """
+    ax = sns.pointplot(x, y, **kwargs)
     ax.axhline(5, alpha=0.5, color='grey')
     for i in range(len(x)):
-        ax.annotate('{:6.2f}'.format(z.values[i]), xy=(i, z.values[i]),fontsize=8,
-                    color=kwargs.get("color","k"),
-                    bbox=dict(pad=.9,alpha=1, fc='w',color='none'),
-                    va='center', ha='center',weight='bold')
+        ax.annotate('{:6.2f}'.format(z.values[i]), xy=(i, z.values[i]), fontsize=8,
+                    color=kwargs.get("color", "k"),
+                    bbox=dict(pad=.9, alpha=1, fc='w', color='none'),
+                    va='center', ha='center', weight='bold')
+
 
 def facet_scatter(x, y, **kwargs):
-    """Draw scatterplot with point colors from a faceted DataFrame columns."""
+    """
+    Draw scatterplot with point colors from a faceted DataFrame columns.
+    :param x:
+    :param y:
+    :param kwargs:
+    :return:
+    """
     kwargs.pop("color")
     # plt.scatter(x, y, c=c, **kwargs)
     # ax = sns.boxplot(x, y, data=train, **kwargs)
-    ax = sns.boxplot(x, y, **kwargs)
+    sns.boxplot(x, y, **kwargs)
 
 
 # GLOBAL VARIABLES
@@ -176,7 +237,7 @@ if __name__ == '__main__':
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-5], "a{0}.00".format(str(amplitude_max)))
                 if file.split("_")[-2] != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
-                    # select_CA_align(file, start, end)
+                    # select_ca_align(file, start, end)
                     # res_to_be_aligned = ca_align_list
                     res_to_be_aligned = ca_align_dict[file.split("_")[-8]]
                     pdb_parser = Bio.PDB.PDBParser(QUIET=True)
@@ -234,8 +295,8 @@ if __name__ == '__main__':
     column_names_to_normalize = ['score_init']
 
     min_max_scaler = preprocessing.MinMaxScaler()
-    x = train[column_names_to_normalize].values
-    x_scaled = min_max_scaler.fit_transform(x)
+    df_val = train[column_names_to_normalize].values
+    x_scaled = min_max_scaler.fit_transform(df_val)
     df_temp = pd.DataFrame(x_scaled, columns=column_names_to_normalize, index=train.index)
     train[column_names_to_normalize] = df_temp
 
@@ -248,7 +309,7 @@ if __name__ == '__main__':
     # train = train.loc[(train['repeat'] == 1)]
 
     grouped = train.groupby(["pdbid"])
-    train = grouped.apply(lambda x: x.sort_values(["amplitude"], ascending = True)).reset_index(drop=True)
+    train = grouped.apply(lambda f_obj: f_obj.sort_values(["amplitude"], ascending=True)).reset_index(drop=True)
 
     h = sns.FacetGrid(train, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
 
@@ -268,8 +329,6 @@ if __name__ == '__main__':
 
     for idx, v in enumerate(train.pdbid.unique()):
         h.axes[idx].set_xticklabels(train.loc[train.pdbid == v, 'amplitude'].unique(), rotation=45)
-
-
 
     # h.subplots_adjust(wspace=0)
     # h.savefig('boxplot-python.png')

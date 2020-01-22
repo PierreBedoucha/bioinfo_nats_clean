@@ -292,7 +292,7 @@ if __name__ == '__main__':
                 file_ref = filelist[0]
                 if amplitude != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
-                    # select_CA_align(file, start, end)
+                    # select_ca_align(file, start, end)
                     # res_to_be_aligned = ca_align_list
                     res_to_be_aligned = ca_align_dict[file.split("_")[pdbid_count]]
                     pdb_parser = Bio.PDB.PDBParser(QUIET=True)

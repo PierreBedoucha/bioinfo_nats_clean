@@ -173,7 +173,7 @@ if __name__ == '__main__':
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[-5], "a{0}.00".format(str(amplitude_max)))
                 if file.split("_")[-2] != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
-                    # select_CA_align(file, start, end)
+                    # select_ca_align(file, start, end)
                     # res_to_be_aligned = ca_align_list
                     res_to_be_aligned = ca_align_dict[file.split("_")[-8]]
                     pdb_parser = Bio.PDB.PDBParser(QUIET=True)

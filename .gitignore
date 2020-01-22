@@ -1,6 +1,5 @@
 .idea
 *.pdb
-*.csv
 *.png
 *.inp
 ROSETTA_CRASH.log
