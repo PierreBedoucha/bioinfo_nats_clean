@@ -51,7 +51,9 @@ def read_pdb_starts():
 def read_msa_fasta():
     """
     Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
-    :return:
+    Note: here, only the aligned regions are of interest, gaps are removed.
+    :return: Dictionary. Keys: structure pdb id, Values: aligned indices
+    :rtype: dict
     """
     pdb_align_dict = {'3tfy': [], '5isv': [], '4pv6': [], '2z0z': [], '1s7l': [], '2x7b': [], '3igr': [], '5k18': [],
                       '2cns': [],
@@ -71,10 +73,13 @@ def read_msa_fasta():
 
 def compute_rmsd_align(pdb_path1, pdb_path2):
     """
-
-    @param pdb_path1:
-    @param pdb_path2:
-    @return:
+    Computes RMS distance between two pdb structures and only for the aligned regions in the multiple sequence alignment
+    :param pdb_path1: First pdb file name
+    :type pdb_path1: str
+    :param pdb_path2: First pdb file name
+    :type pdb_path2: str
+    :return: Rmsd value between pdb structures
+    :rtype: float
     """
     sum_dist_sq = 0
     atom_cpt = 1
@@ -86,13 +91,10 @@ def compute_rmsd_align(pdb_path1, pdb_path2):
     if not os.path.exists(pdb_path2):
         file2_ref_array[-3] = "1"
         pdb_path2 = "_".join(file2_ref_array)
-    # pdb1_res_list = read_msa_fasta()[file1_ref_array[-8]]
-    # pdb2_res_list = read_msa_fasta()[file2_ref_array[-8]]
     pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
     pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
-            # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
             if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
                 if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
                     if (int(line1[23:26].strip()) in pdb1_res_list) and \
@@ -116,12 +118,17 @@ def compute_rmsd_align(pdb_path1, pdb_path2):
 
 def compute_rmsd(pdb_path1, pdb_path2, start, end):
     """
-
-    :param pdb_path1:
-    :param pdb_path2:
-    :param start:
-    :param end:
-    :return:
+    Computes RMS distance between two pdb structures and only from start to end indices in their sequence
+    :param pdb_path1: First pdb file name
+    :type pdb_path1: str
+    :param pdb_path2: First pdb file name
+    :type pdb_path2: str
+    :param start: Start sequence index for rmsd computation
+    :type start: int
+    :param end: End sequence index for rmsd computation
+    :type end: int
+    :return: Rmsd value between pdb structures
+    :rtype: float
     """
     sum_dist_sq = 0
     atom_cpt = 1
@@ -135,7 +142,6 @@ def compute_rmsd(pdb_path1, pdb_path2, start, end):
         pdb_path2 = "_".join(pdb_ref_array)
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
-            # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
             if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
                 if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
                     if (start <= int(line1[23:26].strip()) <= end) and (start <= int(line2[23:26].strip()) <= end):
@@ -150,7 +156,6 @@ def compute_rmsd(pdb_path1, pdb_path2, start, end):
                                                   np.array([np.float64(line2[30:38]),
                                                             np.float64(line2[38:46]),
                                                             np.float64(line2[46:54])]).reshape(1, -1))
-                        # print(dist[0][0])
                         sum_dist_sq += math.pow(dist[0][0], 2)
                         atom_cpt += 1
     rmsd = math.sqrt(sum_dist_sq / atom_cpt)
@@ -159,11 +164,15 @@ def compute_rmsd(pdb_path1, pdb_path2, start, end):
 
 def select_ca_align(pdb_path, start, end):
     """
-
-    :param pdb_path:
-    :param start:
-    :param end:
-    :return:
+    Get the list of Calpha atom indices in the input structure and between start and end sequence indices
+    :param pdb_path: First pdb file name
+    :type pdb_path: str
+    :param start: Start sequence index for rmsd computation
+    :type start: int
+    :param end: End sequence index for rmsd computation
+    :type end: int
+    :return: List of selected Calpha atom indices
+    :rtype: list
     """
     with open(pdb_path) as f1:
         for line in f1:
@@ -172,6 +181,7 @@ def select_ca_align(pdb_path, start, end):
                     # Append Atom id or Resid???
                     # ca_align_list.append(int(line[6:11].strip())) # Atom id
                     ca_align_list.append(int(line[23:26].strip()))  # Resid
+    return ca_align_list
 
 
 # Global variables (Ugly)
@@ -181,12 +191,12 @@ ca_align_dict = read_msa_fasta()
 
 def f(x, y, z, **kwargs):
     """
-
-    :param x:
-    :param y:
-    :param z:
-    :param kwargs:
-    :return:
+    Add annotation on seaborn plot
+    :param x: x value for the annotation position on plot
+    :param y: y value for the annotation poistion on plot
+    :param z: Annotated value
+    :param kwargs: keyword arguments
+    :param kwargs: keyword arguments
     """
     ax = sns.pointplot(x, y, **kwargs)
     ax.axhline(5, alpha=0.5, color='grey')
@@ -200,14 +210,11 @@ def f(x, y, z, **kwargs):
 def facet_scatter(x, y, **kwargs):
     """
     Draw scatterplot with point colors from a faceted DataFrame columns.
-    :param x:
-    :param y:
-    :param kwargs:
-    :return:
+    :param x: x axis data
+    :param y: y axis data
+    :param kwargs: keyword arguments
     """
     kwargs.pop("color")
-    # plt.scatter(x, y, c=c, **kwargs)
-    # ax = sns.boxplot(x, y, data=train, **kwargs)
     sns.boxplot(x, y, **kwargs)
 
 
@@ -317,12 +324,6 @@ if __name__ == '__main__':
     vmax = train['rmsd_relax'].max()
 
     # Plotting the data
-    # response = ['Base', 'State23', 'State42', 'End']
-    # fig, ax = pt.subplots(1, len(response), sharex=True, sharey=True)
-    # for i, r in enumerate(col_name):
-    #     sns.boxplot(data=train, x='amplitude', y='score_relax', hue='environment', ax=ax[i])
-    #     ax[i].set_ylabel('')
-    #     ax[i].set_title(r)
 
     h.map(facet_scatter, 'amplitude', 'score_relax', data=train)
     # h.map(sns.boxplot, 'amplitude', 'score_relax', data=train)

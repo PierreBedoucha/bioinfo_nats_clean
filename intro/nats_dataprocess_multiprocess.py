@@ -1,26 +1,36 @@
 from tempfile import mkstemp
 from shutil import move
 from os import fdopen, remove
-
 from pyrosetta import *
 from rosetta.core.scoring import *
 from rosetta.protocols.relax import *
 from rosetta.core.pose import *
 from rosetta.protocols.constraint_movers import *
 import multiprocessing as mp
-from itertools import repeat
 from functools import partial
 import psutil
-import numpy as np
+
+"""
+MULTIPROCESS
+This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
+The scoring function parameters are detailed in the score_proteins function. The structures are scored before and
+after a relaxation step done with the FastRelax algorithm.
+The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
+"""
 
 
 def read_pdb_chains():
+    """
+    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in
+    ../data/input/etc.
+    :return: Dictionary. Keys: structure pdb id, Values: selected chain letter
+    :rtype: dict
+    """
     file_path = os.path.join("../data/input/etc", "pdb_chains.txt")
     pdb_chains_dict = {}
     with open(file_path) as f1:
         for line in f1:
             if not line.startswith("#") and not line.startswith("\n"):
-                chains_array = []
                 line_array = line.split(':')
                 if len(line_array[1].split(',')) > 1:
                     chains_array = [x.rstrip().upper() for x in line_array[1].split(',')]
@@ -28,6 +38,7 @@ def read_pdb_chains():
                 else:
                     pdb_chains_dict[line[0:4].lower()] = [line_array[1].rstrip().upper()]
     return pdb_chains_dict
+
 
 rosetta_options = ["-ignore_unrecognized_res false",
                    "-ex1",
@@ -46,8 +57,14 @@ rosetta_options = ["-ignore_unrecognized_res false",
                    "-nblist_autoupdate true",
                    "-relax:coord_cst_stdev 0.5"]
 
+
 def score_proteins(matches, pdb_filename):
-    # init(extra_options = "-constant_seed -ignore_unrecognized_res -ex2 -use_input_sc -no_his_his_pairE -no_optH false -flip_HNQ -relax:sc_cst_maxdist 3 -relax:coord_cst_stdev 0.1 -relax:coord_cst_width 1.0")
+    """
+    Base structure scoring function. Here only the relaxation with FastRelax algorithm is performed and the
+    relaxed pose is scored and passed through the mp channel to handle replicates.
+    :param matches: shared list (channel)
+    :param pdb_filename: pdb file name
+    """
     scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
     pose = Pose()
     pose_from_file(pose, '_'.join(pdb_filename.split("_")[1:]))
@@ -62,17 +79,21 @@ def score_proteins(matches, pdb_filename):
 
 
 def pdb_occupancy():
+    """
+    Cleans the pdb files in the current directory by quickly replacing with its fixed version.
+    Each cleaned pdb filename is appended to a list to later log the data.
+    """
     import os
     # Read pdbid // chain mapping
     pdb_chains_dict = read_pdb_chains()
     chains = None
-    for file in os.listdir("."):
-        if file.endswith(".pdb") and 'minimized' not in file:
+    for pdb_file in os.listdir("."):
+        if pdb_file.endswith(".pdb") and 'minimized' not in pdb_file:
             fh, abs_path = mkstemp()
-            if file[0:4] in pdb_chains_dict.keys():
-                chains = pdb_chains_dict[file[0:4]]
+            if pdb_file[0:4] in pdb_chains_dict.keys():
+                chains = pdb_chains_dict[pdb_file[0:4]]
             with fdopen(fh, 'w') as new_file:
-                with open(file) as f1:
+                with open(pdb_file) as f1:
                     for line in f1:
                         if line[0:6] == 'ATOM  ':
                             temp = line[50:60].replace(line[54:60], '{:6.2f}'.format(1.0))
@@ -87,19 +108,18 @@ def pdb_occupancy():
                                 line = line.replace(line[17:20], 'CYS ')
                             if chains is None:
                                 new_file.write("%s" % line)
-                            elif line[21:22] in chains and len(chains)==1:
+                            elif line[21:22] in chains and len(chains) == 1:
                                 # line = line.replace(line[21:22], "{0}".format(chains[0]))
                                 new_file.write("%s" % line)
-                            elif len(chains)==1:
-                                temp = line[21:30].replace(line[21:30], line[21:30])
+                            elif len(chains) == 1:
                                 line = line.replace(line[21:30], chains[0] + line[22:30])
                                 new_file.write("%s" % line)
             # Remove original file
-            remove(file)
+            remove(pdb_file)
             # Move new file
-            move(abs_path, file)
+            move(abs_path, pdb_file)
 
-            pdbfile_list.append(file)
+            pdbfile_list.append(pdb_file)
 
 
 # Global variables
@@ -125,36 +145,38 @@ if __name__ == '__main__':
             score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
 
         manager = mp.Manager()  # create SyncManager
-        matches = manager.list()  # create a shared list here
-        link_matches = partial(score_proteins, matches)  # create one arg callable to
+        shared_matches = manager.list()  # create a shared list here
+        link_matches = partial(score_proteins, shared_matches)  # create one arg callable to
 
-        #Repeating the relax/scoring
+        # Repeating the relax/scoring
         list_files_rep = []
         for file in list_files:
-            for i in list(range(1, nb_of_repeats+1, 1)):
+            for i in list(range(1, nb_of_repeats + 1, 1)):
                 list_files_rep.append(str(i) + "_" + file)
 
-        pool = mp.Pool(psutil.cpu_count(logical = False))
+        pool = mp.Pool(psutil.cpu_count(logical=False))
         pool.map(link_matches, list_files_rep)  # apply partial to files list
         pool.close()
         pool.join()
-        print(matches)
 
         import csv
+
         wtr = csv.writer(open('pyrosetta_out.csv', 'w+'), delimiter=',', lineterminator='\n', quoting=csv.QUOTE_NONE,
                          escapechar='\\')  #
-        wtr.writerow(['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'disall', 'bad_contacts', 'bond_lenangle',
-                      'g_factors', 'bond_lengths_highlighted', 'bond_lengths_off', 'bond_angles_highlighted',
-                      'bond_angles_off',
-                      'score_relax'])
+        wtr.writerow(
+            ['pdb_filename', 'rmsd_init', 'score_init', 'rmsd_relax', 'disall', 'bad_contacts', 'bond_lenangle',
+             'g_factors', 'bond_lengths_highlighted', 'bond_lengths_off', 'bond_angles_highlighted',
+             'bond_angles_off',
+             'score_relax'])
 
         padded_list = [0] * (nb_of_repeats * len(score_init_list))  # [0,0,0,0,0,0,0,0,0,0,0]
         padded_list[::nb_of_repeats] = score_init_list
         padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
 
-        l = [(x[0] for x in matches), (x for x in padded_list_rmsd), (x for x in padded_list),
-             (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
-             (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
-             (x for x in padded_list_rmsd),
-             (x[1] for x in matches)]
-        wtr.writerows([i for i in zip(*l)])
+        list_write = [(x[0] for x in shared_matches), (x for x in padded_list_rmsd), (x for x in padded_list),
+                      (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
+                      (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
+                      (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
+                      (x for x in padded_list_rmsd), (x for x in padded_list_rmsd),
+                      (x for x in padded_list_rmsd), (x[1] for x in shared_matches)]
+        wtr.writerows([i for i in zip(*list_write)])

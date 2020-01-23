@@ -132,7 +132,7 @@ if __name__ == '__main__':
     train['is_outliers'] = mask
     train['pdbid'] = pdbid_list
 
-    # In case the grooups over pdbids are need to evaluate features across common columns
+    # In case the groups over pdbids are need to evaluate features across common columns
     # grouped = train.groupby(["pdbid"])
     # train = grouped.apply(lambda x: x.sort_values(["resid"], ascending = True)).reset_index(drop=True)
 

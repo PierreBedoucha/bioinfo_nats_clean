@@ -1,7 +1,6 @@
 from tempfile import mkstemp
 from shutil import move
 from os import fdopen, remove
-
 from pyrosetta import *
 from rosetta.core.scoring import *
 from rosetta.protocols.relax import *
@@ -11,14 +10,27 @@ from pyrosetta.mpi import mpi_init
 from PyRosetta_TACC_MPI import *
 from mpi4py import MPI
 
+"""
+MPI TEST
+This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
+The scoring function parameters are detailed in the _main function. The structures are scored before and
+after a relaxation step done with the FastRelax algorithm.
+The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
+"""
+
 
 def read_pdb_chains():
+    """
+    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in
+    ../data/input/etc.
+    :return: Dictionary. Keys: structure pdb id, Values: selected chain letter
+    :rtype: dict
+    """
     file_path = os.path.join("../data/input/etc", "pdb_chains.txt")
     pdb_chains_dict = {}
     with open(file_path) as f1:
         for line in f1:
             if not line.startswith("#") and not line.startswith("\n"):
-                chains_array = []
                 line_array = line.split(':')
                 if len(line_array[1].split(',')) > 1:
                     chains_array = [x.rstrip().upper() for x in line_array[1].split(',')]
@@ -29,35 +41,19 @@ def read_pdb_chains():
 
 
 def score_proteins(pdb_filename):
-    # init(extra_options = "-constant_seed -ignore_unrecognized_res -ex2 -use_input_sc -no_his_his_pairE -no_optH false -flip_HNQ -relax:sc_cst_maxdist 3 -relax:coord_cst_stdev 0.5")
-    #
-    # scorefxn = pyrosetta.rosetta.core.scoring.ScoreFunctionFactory.create_score_function('ref2015_cst')
-    #
-    # # create a pose from the desired PDB file
-    # # -create an empty Pose object
-    # pose = Pose()
-    # # -load the data from pdb_file into the pose
-    # pose_from_file(pose, pdb_filename)
-    # pose_score = scorefxn(pose)
-    # score_init_list.append(pose_score / pyrosetta.rosetta.core.pose.Pose.total_residue(pose))
-    #
-    # relax = FastRelax(standard_repeats=5)
-    # relax.set_scorefxn(scorefxn)
-    #
-    # relax.constrain_relax_to_start_coords(True)
-    # relax.coord_constrain_sidechains(True)
-    # relax.ramp_down_constraints(False)
-
-    for i in list(range(1, nb_of_repeats+1, 1)):
-        # relax.apply(pose)
-        # pose.dump_pdb("minimized_fast_CST_" + str(i) + "_" + pdb_filename)
-        # pose_score_2 = scorefxn(pose)
-        #
-        # score_relax_dict[pdb_filename + "_" + str(i)] = pose_score_2 / pyrosetta.rosetta.core.pose.Pose.total_residue(pose)
+    """
+    Structure scoring function. Launches the main scoring function on global number of replicates
+    :param pdb_filename: pdb file name
+    """
+    for _ in list(range(1, nb_of_repeats + 1, 1)):
         _main(pdb_filename)
 
 
 def pdb_occupancy():
+    """
+    Cleans the pdb files in the current directory by quickly replacing with its fixed version and launches the scoring.
+    Each cleaned pdb filename is appended to a list to later log the data.
+    """
     import os
     # Read pdbid // chain mapping
     pdb_chains_dict = read_pdb_chains()
@@ -101,6 +97,12 @@ nb_of_repeats = 1
 
 
 def _main(start_pdb):
+    """
+    Main structure scoring function. Describes the scoring parameters and set the values of two global lists containing
+    the initial score before relaxation on one hand, and the final score after relaxation on the other.
+    Handles the MPI job for each submitted pose.
+    :param pdb_filename: pdb file name
+    """
     out_pdb = start_pdb
 
     comm = MPI.COMM_WORLD
@@ -132,8 +134,6 @@ def _main(start_pdb):
 
     mpi_init(extra_options=" ".join(rosetta_options))
 
-    n_local_jobs = None
-
     if n_start_poses > size:
         job_div = int(np.floor(n_start_poses / size))
         job_rem = n_start_poses - (job_div * size)
@@ -143,7 +143,6 @@ def _main(start_pdb):
         else:
             n_local_jobs = job_div + 1
     else:
-        job_div = 1
         if rank <= n_start_poses:
             n_local_jobs = 1
         else:
@@ -157,11 +156,12 @@ def _main(start_pdb):
         print("POSE %d in PROCESS %d COMPLETE, WRITING TO %s" % (i, rank, outfile_name))
         packer_job.dump_pose(outfile_name)
 
-        score_relax_dict[start_pdb + "_" + str(i)] = packer_job.final_score / pyrosetta.rosetta.core.pose.Pose.total_residue(
+        score_relax_dict[
+            start_pdb + "_" + str(i)] = packer_job.final_score / pyrosetta.rosetta.core.pose.Pose.total_residue(
             packer_job.pose)
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     pdb_occupancy()
     import csv
     import numpy as np
@@ -174,6 +174,6 @@ if __name__ == '__main__':
     padded_list[::nb_of_repeats] = score_init_list
     padded_list_rmsd = [0] * (nb_of_repeats * len(score_init_list))
 
-    l = [(x for x in score_relax_dict.keys()), (x for x in padded_list_rmsd), (x for x in padded_list),
-         (x for x in padded_list_rmsd), (x for x in score_relax_dict.values())]
-    wtr.writerows([i for i in zip(*l)])
+    list_write = [(x for x in score_relax_dict.keys()), (x for x in padded_list_rmsd), (x for x in padded_list),
+                  (x for x in padded_list_rmsd), (x for x in score_relax_dict.values())]
+    wtr.writerows([i for i in zip(*list_write)])
