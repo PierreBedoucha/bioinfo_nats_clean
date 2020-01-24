@@ -1,0 +1,330 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>nats_minimize_scripts &#8212; Bioinfo Nats 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for nats_minimize_scripts</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">Bio.PDB</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This script handles the creation of a collection of shell scripts for file transfer to run minimization steps</span>
+<span class="sd">on server (doggpil). It quickly inputs the selected structure files (pdb) from the current directory.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="read_pdb_starts"><a class="viewcode-back" href="../nats_minimize_scripts.html#nats_minimize_scripts.read_pdb_starts">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_starts</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+<span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: starting index</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;../data/input/etc&quot;</span><span class="p">,</span> <span class="s2">&quot;pdb_starts.txt&quot;</span><span class="p">)</span>
+    <span class="n">pdb_starts_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1_start</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_start</span> <span class="ow">in</span> <span class="n">f1_start</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line_start</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line_start</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+                <span class="n">line_array</span> <span class="o">=</span> <span class="n">line_start</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">pdb_starts_dict</span><span class="p">[</span><span class="n">line_start</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_array</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">pdb_starts_dict</span></div>
+
+
+<div class="viewcode-block" id="read_pdb_ends"><a class="viewcode-back" href="../nats_minimize_scripts.html#nats_minimize_scripts.read_pdb_ends">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_ends</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads at which index each pdb sequence is starting from the pdb_ends.txt file from ../data/input/etc</span>
+<span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: ending index</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;../data/input/etc&quot;</span><span class="p">,</span> <span class="s2">&quot;pdb_ends.txt&quot;</span><span class="p">)</span>
+    <span class="n">pdb_ends_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1_end</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_end</span> <span class="ow">in</span> <span class="n">f1_end</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line_end</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line_end</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+                <span class="n">line_array</span> <span class="o">=</span> <span class="n">line_end</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">pdb_ends_dict</span><span class="p">[</span><span class="n">line_end</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_array</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">pdb_ends_dict</span></div>
+
+
+<div class="viewcode-block" id="test_missing_res"><a class="viewcode-back" href="../nats_minimize_scripts.html#nats_minimize_scripts.test_missing_res">[docs]</a><span class="k">def</span> <span class="nf">test_missing_res</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">pdbfile_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detects gaps in residue sequence numbers and split the structure pdb file in two different ones for further</span>
+<span class="sd">    handling withe minimization scripts (Charmm)</span>
+<span class="sd">    :param filename: Name for the pdb file being handled</span>
+<span class="sd">    :param pdbfile_path: Path for the pdb file</span>
+<span class="sd">    :return: Array of the wo split pdb file names</span>
+<span class="sd">    :rtype: str[]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">Bio</span><span class="o">.</span><span class="n">PDB</span><span class="o">.</span><span class="n">PDBParser</span><span class="p">(</span><span class="n">PERMISSIVE</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="n">file</span><span class="o">=</span><span class="n">pdbfile_path</span><span class="p">)</span>
+    <span class="n">old_resid</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">model</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">ch</span><span class="p">:</span>
+                <span class="n">resid</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">id</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">resid</span> <span class="o">==</span> <span class="n">old_resid</span> <span class="o">+</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">old_resid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Missing res for </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]))</span>
+                    <span class="n">stop_resid</span> <span class="o">=</span> <span class="n">resid</span>
+                    <span class="n">output_name_1</span> <span class="o">=</span> <span class="n">pdbfile_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;-a.pdb&quot;</span><span class="p">)</span>  <span class="c1"># Create the name of the output file</span>
+                    <span class="n">output_1</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_name_1</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>  <span class="c1"># Open the output file</span>
+                    <span class="n">output_name_2</span> <span class="o">=</span> <span class="n">pdbfile_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;-a2.pdb&quot;</span><span class="p">)</span>  <span class="c1"># Create the name of the output file</span>
+                    <span class="n">output_2</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_name_2</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>  <span class="c1"># Open the output file</span>
+                    <span class="n">is_pdb_restarted</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">atom_cpt</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdbfile_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_file</span><span class="p">:</span>  <span class="c1"># open the pdb file</span>
+                        <span class="k">for</span> <span class="n">line_check</span> <span class="ow">in</span> <span class="n">input_file</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">line_check</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ATOM&quot;</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_check</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="n">stop_resid</span><span class="p">:</span>
+                                    <span class="n">output_1</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line_check</span><span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">atom_cpt</span> <span class="o">+=</span> <span class="mi">1</span>
+                                    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_pdb_restarted</span><span class="p">:</span>
+                                        <span class="n">start_stop_resid_dict</span><span class="p">[</span><span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                                        <span class="n">old_resid</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_check</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+                                        <span class="n">is_pdb_restarted</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="k">if</span> <span class="n">atom_cpt</span> <span class="o">&gt;=</span> <span class="mi">100</span><span class="p">:</span>
+                                        <span class="n">line_check</span> <span class="o">=</span> <span class="n">line_check</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line_check</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">11</span><span class="p">],</span>
+                                                                        <span class="s2">&quot;ATOM    </span><span class="si">{0}{1}{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom_cpt</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                                                                                   <span class="nb">str</span><span class="p">(</span><span class="n">atom_cpt</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+                                                                                                   <span class="nb">str</span><span class="p">(</span><span class="n">atom_cpt</span><span class="p">)[</span><span class="mi">2</span><span class="p">]))</span>
+                                    <span class="k">elif</span> <span class="n">atom_cpt</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+                                        <span class="n">line_check</span> <span class="o">=</span> <span class="n">line_check</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line_check</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">11</span><span class="p">],</span>
+                                                                        <span class="s2">&quot;ATOM     </span><span class="si">{0}{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom_cpt</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                                                                                 <span class="nb">str</span><span class="p">(</span><span class="n">atom_cpt</span><span class="p">)[</span><span class="mi">1</span><span class="p">]))</span>
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="n">line_check</span> <span class="o">=</span> <span class="n">line_check</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line_check</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">11</span><span class="p">],</span>
+                                                                        <span class="s2">&quot;ATOM      </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom_cpt</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+                                    <span class="n">output_2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line_check</span><span class="p">)</span>
+                    <span class="n">output_1</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;TER</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">output_1</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;END&#39;</span><span class="p">)</span>
+                    <span class="n">output_1</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="n">output_2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;TER</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">output_2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;END&#39;</span><span class="p">)</span>
+                    <span class="n">output_2</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="p">[</span><span class="n">output_name_1</span><span class="p">,</span> <span class="n">output_name_2</span><span class="p">]</span>
+                <span class="n">old_resid</span> <span class="o">=</span> <span class="n">resid</span></div>
+
+
+<span class="c1"># GLOBAL VARS</span>
+<span class="n">start_stop_resid_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">directory_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">files_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">paths_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">scripts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">scripts_build_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">scripts_mini_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="s2">&quot;../../compnma_api/data/output/python_output&quot;</span><span class="p">,</span> <span class="n">topdown</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;dcd_SC&quot;</span><span class="p">:</span>
+                <span class="n">directory_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+    <span class="n">pdb_align_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;3tfy&#39;</span><span class="p">,</span> <span class="s1">&#39;5isv&#39;</span><span class="p">,</span> <span class="s1">&#39;4pv6&#39;</span><span class="p">,</span> <span class="s1">&#39;2z0z&#39;</span><span class="p">,</span> <span class="s1">&#39;1s7l&#39;</span><span class="p">,</span> <span class="s1">&#39;2x7b&#39;</span><span class="p">,</span> <span class="s1">&#39;3igr&#39;</span><span class="p">,</span> <span class="s1">&#39;5k18&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;2cns&#39;</span><span class="p">,</span> <span class="s1">&#39;5hh0&#39;</span><span class="p">,</span> <span class="s1">&#39;5wjd&#39;</span><span class="p">,</span> <span class="s1">&#39;5icv&#39;</span><span class="p">,</span> <span class="s1">&#39;4kvm&#39;</span><span class="p">,</span> <span class="s1">&#39;4u9v&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">directory_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> \
+                    <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">pdb_align_list</span><span class="p">:</span>
+                <span class="c1"># Test missing Residues</span>
+                <span class="n">split_file_list</span> <span class="o">=</span> <span class="n">test_missing_res</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">split_file_list</span><span class="p">:</span>
+                    <span class="n">files_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_file_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">paths_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_file_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">files_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_file_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">paths_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_file_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">files_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                    <span class="n">paths_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_list</span><span class="p">:</span>
+        <span class="n">line_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-a.pdb&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-a2.pdb&quot;</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;../data/input/etc/build_mini_nats.inp&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f1</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;set protein&quot;</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;set protein </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;read coor pdb&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;read coor pdb unit 3 offset -</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;read coor pdb&quot;</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;read coor pdb unit 3</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;cons fix sele resid 1:&quot;</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;cons fix sele resid 1:</span><span class="si">{}</span><span class="s2"> .and. -</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">read_pdb_ends</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">-</span>
+                                                                               <span class="p">(</span><span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+                    <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f2</span><span class="p">:</span>
+                <span class="n">f2</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+            <span class="n">scripts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+            <span class="n">scripts_build_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;../data/input/etc/build_mini_nats_residue-gap.inp&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f1</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;set protein&quot;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-a.pdb&quot;</span><span class="p">):</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;set protein </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-a.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-a2.pdb&quot;</span><span class="p">):</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;set protein </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-a2.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;read coor pdb unit 10&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;read coor pdb unit 10 offset -</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;read coor pdb unit 10&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;read coor pdb unit 10&quot;</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;read coor pdb unit 11&quot;</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;read coor pdb unit 11 offset -</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">start_stop_resid_dict</span><span class="p">[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+                                                                               <span class="o">-</span> <span class="n">start_stop_resid_dict</span><span class="p">[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]][</span><span class="mi">0</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;cons fix sele resid 1:&quot;</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;cons fix sele resid 1:</span><span class="si">{}</span><span class="s2"> .and. -</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">read_pdb_ends</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">-</span>
+                                                                               <span class="p">(</span><span class="n">read_pdb_starts</span><span class="p">()[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+                    <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-a.pdb&quot;</span><span class="p">):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-a.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f2</span><span class="p">:</span>
+                    <span class="n">f2</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-a2.pdb&quot;</span><span class="p">):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-a2.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f2</span><span class="p">:</span>
+                    <span class="n">f2</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scripts_list</span><span class="p">:</span>
+                <span class="n">scripts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">scripts_build_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;build_mini_</span><span class="si">{}</span><span class="s2">.inp&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;transfer_script_login.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f5</span><span class="p">:</span>
+        <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;scp </span><span class="si">{}</span><span class="s2"> pierreb@login.ii.uib.no:~&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths_list</span><span class="p">))</span>
+        <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;transfer_script_doggpil.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f6</span><span class="p">:</span>
+        <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;scp </span><span class="si">{}</span><span class="s2"> pierreb@doggpil.cbu.uib.no:/net/orinoco/pierreb/charmm/nathalie_charmm/struct/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">files_list</span><span class="p">))</span>
+        <span class="n">f6</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+
+    <span class="c1"># transfer mini pdbs back</span>
+    <span class="n">files_mini_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;_mini.pdb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">files_list</span><span class="p">]</span>
+    <span class="n">files_mini_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-a2&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">files_mini_list</span><span class="p">]</span>
+    <span class="n">files_mini_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-a&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">files_mini_list</span><span class="p">]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;transfer_struct_mini_doggpil.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f7</span><span class="p">:</span>
+        <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;scp </span><span class="si">{}</span><span class="s2"> pierreb@login.ii.uib.no:./</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">files_mini_list</span><span class="p">))</span>
+        <span class="n">f7</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;transfer_struct_mini_login.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f8</span><span class="p">:</span>
+        <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;scp pierreb@login.ii.uib.no:\{{</span><span class="si">{0}</span><span class="s2">\}} ./&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">files_mini_list</span><span class="p">))</span>
+        <span class="n">f8</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;transfer_build-mini_login.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f5</span><span class="p">:</span>
+        <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;scp </span><span class="si">{}</span><span class="s2"> pierreb@login.ii.uib.no:~&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scripts_list</span><span class="p">))</span>
+        <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;transfer_build-mini_doggpil.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f6</span><span class="p">:</span>
+        <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;scp </span><span class="si">{}</span><span class="s2"> pierreb@doggpil.cbu.uib.no:/net/orinoco/pierreb/charmm/nathalie_charmm/calc/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scripts_list</span><span class="p">))</span>
+        <span class="n">f6</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+
+    <span class="c1"># run build script</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;run_build.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f5</span><span class="p">:</span>
+        <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cd ../struct/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;for f in `find`; do mv -v </span><span class="se">\&quot;</span><span class="s2">$f</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">`echo $f | tr &#39;[A-Z]&#39; &#39;[a-z]&#39;`</span><span class="se">\&quot;</span><span class="s2">; done</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cd ../calc/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">script</span> <span class="ow">in</span> <span class="n">scripts_build_list</span><span class="p">:</span>
+            <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;/net/orinoco/apps/charmm/c38b2/exec/gnu_xxlarge/charmm_xxlarge &lt; </span><span class="si">{0}</span><span class="s2"> &gt; </span><span class="si">{1}</span><span class="s2"> | &quot;</span>\
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">script</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.inp&quot;</span><span class="p">,</span> <span class="s2">&quot;.out&quot;</span><span class="p">))</span>
+            <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;run_build.sh&quot;</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+        <span class="n">filehandle</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+        <span class="n">filehandle</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+
+    <span class="c1"># run minimize script</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;run_minimize.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f5</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">script</span> <span class="ow">in</span> <span class="n">scripts_mini_list</span><span class="p">:</span>
+            <span class="n">str_line</span> <span class="o">=</span> <span class="s2">&quot;/net/orinoco/apps/charmm/c38b2/exec/gnu_xxlarge/charmm_xxlarge &lt; </span><span class="si">{0}</span><span class="s2"> &gt; </span><span class="si">{1}</span><span class="s2"> | &quot;</span>\
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">script</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.inp&quot;</span><span class="p">,</span> <span class="s2">&quot;.out&quot;</span><span class="p">))</span>
+            <span class="n">f5</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_line</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;run_minimize.sh&quot;</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+        <span class="n">filehandle</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+        <span class="n">filehandle</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Bioinfo Nats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Pierre Bedoucha.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

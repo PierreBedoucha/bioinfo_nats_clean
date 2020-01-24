@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>subplot_rmsd_score module &#8212; Bioinfo Nats 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-subplot_rmsd_score">
+<span id="subplot-rmsd-score-module"></span><h1>subplot_rmsd_score module<a class="headerlink" href="#module-subplot_rmsd_score" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="subplot_rmsd_score.calc_distance">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">calc_distance</code><span class="sig-paren">(</span><em class="sig-param">pdbfile_line_1</em>, <em class="sig-param">pdbfile_line_2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#calc_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.calc_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate in line distance (Angstroms) between two atoms.
+:param pdbfile_line_1: Str line for atom line in first pdb file
+:param pdbfile_line_2: Str line for atom line in second pdb file
+:return: Distance array from distance.cdist method
+:rtype: float[][]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="subplot_rmsd_score.compute_rmsd">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">compute_rmsd</code><span class="sig-paren">(</span><em class="sig-param">pdb_path1</em>, <em class="sig-param">pdb_path2</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#compute_rmsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.compute_rmsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes RMS distance between two pdb structures and only from start to end indices in their sequence
+:param pdb_path1: First pdb file name
+:type pdb_path1: str
+:param pdb_path2: First pdb file name
+:type pdb_path2: str
+:param kwargs: Keyword arguments with optional start and end in the pdb sequence instead of obtaining the
+boundaries from reading the msa data.
+:return: Rmsd value between pdb structures
+:rtype: float</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="subplot_rmsd_score.f">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">f</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add annotation on seaborn plot
+:param x: x value for the annotation position on plot
+:param y: y value for the annotation poistion on plot
+:param z: Annotated value
+:param kwargs: keyword arguments</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="subplot_rmsd_score.facet_scatter">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">facet_scatter</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">c</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#facet_scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.facet_scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw scatterplot with point colors from a faceted DataFrame columns.
+:param x: x axis data
+:param y: y axis data
+:param kwargs: keyword arguments</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="subplot_rmsd_score.read_msa_fasta">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">read_msa_fasta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#read_msa_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.read_msa_fasta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
+Note: here, only the aligned regions are of interest, gaps are removed.
+:return: Dictionary. Keys: structure pdb id, Values: aligned indices
+:rtype: dict</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="subplot_rmsd_score.read_pdb_starts">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">read_pdb_starts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#read_pdb_starts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.read_pdb_starts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
+:return: Dictionary. Keys: structure pdb id, Values: starting index
+:rtype: dict</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="subplot_rmsd_score.read_pfam_align">
+<code class="sig-prename descclassname">subplot_rmsd_score.</code><code class="sig-name descname">read_pfam_align</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score.html#read_pfam_align"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score.read_pfam_align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads multiple sequence alignment profile from pfam. It determines the envelope (start and end) of the GNAT fold
+Reads values from pfam_env.txt file in ../data/input/etc
+:return: Dictionary. Keys: structure pdb id, Values:
+:rtype: dict</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Bioinfo Nats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Pierre Bedoucha.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/subplot_rmsd_score.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

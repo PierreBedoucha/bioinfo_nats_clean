@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>PyRosetta_TACC_MPI module &#8212; Bioinfo Nats 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-PyRosetta_TACC_MPI">
+<span id="pyrosetta-tacc-mpi-module"></span><h1>PyRosetta_TACC_MPI module<a class="headerlink" href="#module-PyRosetta_TACC_MPI" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.AbstractExperimentRunner">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">AbstractExperimentRunner</code><span class="sig-paren">(</span><em class="sig-param">start_pose_pdbs</em>, <em class="sig-param">rosetta_init_options</em>, <em class="sig-param">comm</em>, <em class="sig-param">restrict_to_chain</em>, <em class="sig-param">max_pack_rounds</em>, <em class="sig-param">min_cst_sd</em>, <em class="sig-param">min_restrict_radius</em>, <em class="sig-param">PDB_res</em>, <em class="sig-param">dump_ref_pdb</em>, <em class="sig-param">dump_mut_pdb</em>, <em class="sig-param">pdb_base</em>, <em class="sig-param">verbose</em>, <em class="sig-param">constraint_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractExperimentRunner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractExperimentRunner.dump_ddg_results">
+<code class="sig-name descname">dump_ddg_results</code><span class="sig-paren">(</span><em class="sig-param">outfile_name</em>, <em class="sig-param">header=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractExperimentRunner.dump_ddg_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner.dump_ddg_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specification Required!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractExperimentRunner.gather_results">
+<code class="sig-name descname">gather_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractExperimentRunner.gather_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner.gather_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractExperimentRunner.run_all_jobs_serial">
+<code class="sig-name descname">run_all_jobs_serial</code><span class="sig-paren">(</span><em class="sig-param">outfile='ddg_out.txt'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractExperimentRunner.run_all_jobs_serial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner.run_all_jobs_serial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractExperimentRunner.scatter_job">
+<code class="sig-name descname">scatter_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractExperimentRunner.scatter_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner.scatter_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractExperimentRunner.setup_MPI">
+<code class="sig-name descname">setup_MPI</code><span class="sig-paren">(</span><em class="sig-param">comm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractExperimentRunner.setup_MPI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner.setup_MPI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">AbstractPackerJob</code><span class="sig-paren">(</span><em class="sig-param">convergence_fn=None</em>, <em class="sig-param">conv_threshold=0.1</em>, <em class="sig-param">repack_radius=10</em>, <em class="sig-param">scorefn='mm_std'</em>, <em class="sig-param">mintype='dfpmin_armijo_nonmonotone'</em>, <em class="sig-param">max_rounds=100</em>, <em class="sig-param">restrict_to_chain=None</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.add_constraints_to_pose">
+<code class="sig-name descname">add_constraints_to_pose</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">constraint_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.add_constraints_to_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.add_constraints_to_pose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.add_constraints_to_scorefxn">
+<code class="sig-name descname">add_constraints_to_scorefxn</code><span class="sig-paren">(</span><em class="sig-param">constraint_types=None</em>, <em class="sig-param">weights=None</em>, <em class="sig-param">default_weight=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.add_constraints_to_scorefxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.add_constraints_to_scorefxn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.build_movemap">
+<code class="sig-name descname">build_movemap</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">restrict_radius_center=None</em>, <em class="sig-param">restrict_radius=None</em>, <em class="sig-param">restrict_residues=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.build_movemap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.build_movemap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.make_CompoundMover">
+<code class="sig-name descname">make_CompoundMover</code><span class="sig-paren">(</span><em class="sig-param">movers</em>, <em class="sig-param">repeats_per_round</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.make_CompoundMover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.make_CompoundMover" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.make_minmover">
+<code class="sig-name descname">make_minmover</code><span class="sig-paren">(</span><em class="sig-param">mintype</em>, <em class="sig-param">movemap</em>, <em class="sig-param">pose</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.make_minmover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.make_minmover" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.make_packer_task_with_residues">
+<code class="sig-name descname">make_packer_task_with_residues</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">residues=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.make_packer_task_with_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.make_packer_task_with_residues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a packer task with the specified residues activated for repacking.</p>
+<p>Did this to avoid PackerTask.temporarily_* methods which apparently we’re not supposed to use</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.make_packmin_mover">
+<code class="sig-name descname">make_packmin_mover</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">packertask</em>, <em class="sig-param">minmover</em>, <em class="sig-param">n_packing_steps</em>, <em class="sig-param">n_minimize_steps</em>, <em class="sig-param">kT=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.make_packmin_mover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.make_packmin_mover" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Build a TrialMover with n_packing_steps RotamerTrialMover moves and</dt><dd><p>n_minimization_steps MinMover moves executed sequentially</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.mutate_aa">
+<code class="sig-name descname">mutate_aa</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">residue</em>, <em class="sig-param">aa_name</em>, <em class="sig-param">orient_bb=True</em>, <em class="sig-param">repack_sidechain=True</em>, <em class="sig-param">clone_pose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.mutate_aa"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.mutate_aa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Swap w/t AA at residue number ‘residue’ in ‘pose’ with ‘ncaa_name’ (3-letter code)</p>
+<p>Return a new Pose object</p>
+<p>Note that this assumes the ncaa .params and .rotlib files have been permanently added to the database</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.packer_task_repack_in_radius">
+<code class="sig-name descname">packer_task_repack_in_radius</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">residue</em>, <em class="sig-param">radius</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.packer_task_repack_in_radius"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.packer_task_repack_in_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a packer task that repacks all residues with CAlphas within distance radius</p>
+<p>Might want to remake to take centroid side-chains?  Looks like SwitchResidueTypeMover has trouble w/ nsAAs…</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.residue_CAs_in_radius">
+<code class="sig-name descname">residue_CAs_in_radius</code><span class="sig-paren">(</span><em class="sig-param">pose</em>, <em class="sig-param">centerAA</em>, <em class="sig-param">radius</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.residue_CAs_in_radius"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.residue_CAs_in_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of residues with C-alpha atoms within ‘radius’ distance from centerAA’a C-alpha</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.AbstractPackerJob.std_dev_threshold_fn_builder">
+<code class="sig-name descname">std_dev_threshold_fn_builder</code><span class="sig-paren">(</span><em class="sig-param">threshold</em>, <em class="sig-param">last_n=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#AbstractPackerJob.std_dev_threshold_fn_builder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.AbstractPackerJob.std_dev_threshold_fn_builder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.FastRelaxPoseJob">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">FastRelaxPoseJob</code><span class="sig-paren">(</span><em class="sig-param">in_pdb</em>, <em class="sig-param">MPI_rank</em>, <em class="sig-param">scorefn</em>, <em class="sig-param">restrict_to_chain=None</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#FastRelaxPoseJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.FastRelaxPoseJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.AbstractPackerJob" title="PyRosetta_TACC_MPI.AbstractPackerJob"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.AbstractPackerJob</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.FastRelaxPoseJob.dump_pose">
+<code class="sig-name descname">dump_pose</code><span class="sig-paren">(</span><em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#FastRelaxPoseJob.dump_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.FastRelaxPoseJob.dump_pose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.FastRelaxPoseJob.pack_pose">
+<code class="sig-name descname">pack_pose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#FastRelaxPoseJob.pack_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.FastRelaxPoseJob.pack_pose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.MultiMutantPackerJob">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">MultiMutantPackerJob</code><span class="sig-paren">(</span><em class="sig-param">start_pose_pdb</em>, <em class="sig-param">mutation_list</em>, <em class="sig-param">replicate</em>, <em class="sig-param">convergence_fn=None</em>, <em class="sig-param">conv_threshold=0.1</em>, <em class="sig-param">repack_radius=10</em>, <em class="sig-param">scorefn='mm_std'</em>, <em class="sig-param">mintype='dfpmin_armijo_nonmonotone'</em>, <em class="sig-param">n_pack_steps=3</em>, <em class="sig-param">n_min_steps=1</em>, <em class="sig-param">max_rounds=100</em>, <em class="sig-param">min_cst_sd=None</em>, <em class="sig-param">min_restrict_radius=False</em>, <em class="sig-param">restrict_to_chain=False</em>, <em class="sig-param">PDB_res=False</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MultiMutantPackerJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MultiMutantPackerJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.AbstractPackerJob" title="PyRosetta_TACC_MPI.AbstractPackerJob"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.AbstractPackerJob</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MultiMutantPackerJob.dump_mut_pdb">
+<code class="sig-name descname">dump_mut_pdb</code><span class="sig-paren">(</span><em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MultiMutantPackerJob.dump_mut_pdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MultiMutantPackerJob.dump_mut_pdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MultiMutantPackerJob.dump_ref_pdb">
+<code class="sig-name descname">dump_ref_pdb</code><span class="sig-paren">(</span><em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MultiMutantPackerJob.dump_ref_pdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MultiMutantPackerJob.dump_ref_pdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MultiMutantPackerJob.get_result">
+<code class="sig-name descname">get_result</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MultiMutantPackerJob.get_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MultiMutantPackerJob.get_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MultiMutantPackerJob.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MultiMutantPackerJob.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MultiMutantPackerJob.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MultiMutantPackerJob.setup_poses">
+<code class="sig-name descname">setup_poses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MultiMutantPackerJob.setup_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MultiMutantPackerJob.setup_poses" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.MutagenesisExperimentRunner">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">MutagenesisExperimentRunner</code><span class="sig-paren">(</span><em class="sig-param">start_pose_pdbs</em>, <em class="sig-param">rosetta_init_options</em>, <em class="sig-param">comm</em>, <em class="sig-param">residue_list=[]</em>, <em class="sig-param">AA_list=[]</em>, <em class="sig-param">nreps=50</em>, <em class="sig-param">restrict_to_chain=False</em>, <em class="sig-param">max_pack_rounds=25</em>, <em class="sig-param">min_cst_sd=None</em>, <em class="sig-param">min_restrict_radius=False</em>, <em class="sig-param">PDB_res=False</em>, <em class="sig-param">dump_ref_pdb=False</em>, <em class="sig-param">dump_mut_pdb=False</em>, <em class="sig-param">pdb_base=''</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutagenesisExperimentRunner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutagenesisExperimentRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner" title="PyRosetta_TACC_MPI.AbstractExperimentRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.AbstractExperimentRunner</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutagenesisExperimentRunner.build_job_list">
+<code class="sig-name descname">build_job_list</code><span class="sig-paren">(</span><em class="sig-param">residues</em>, <em class="sig-param">AAs</em>, <em class="sig-param">replicates</em>, <em class="sig-param">shuffle_jobs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutagenesisExperimentRunner.build_job_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutagenesisExperimentRunner.build_job_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutagenesisExperimentRunner.dump_ddg_results">
+<code class="sig-name descname">dump_ddg_results</code><span class="sig-paren">(</span><em class="sig-param">outfile_name</em>, <em class="sig-param">header=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutagenesisExperimentRunner.dump_ddg_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutagenesisExperimentRunner.dump_ddg_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump results to a .tsv file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutagenesisExperimentRunner.setup_jobs">
+<code class="sig-name descname">setup_jobs</code><span class="sig-paren">(</span><em class="sig-param">residue_list</em>, <em class="sig-param">AA_list</em>, <em class="sig-param">nreps</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutagenesisExperimentRunner.setup_jobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutagenesisExperimentRunner.setup_jobs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">MutantCombinationsExperimentRunner</code><span class="sig-paren">(</span><em class="sig-param">start_pose_pdbs</em>, <em class="sig-param">rosetta_init_options</em>, <em class="sig-param">comm</em>, <em class="sig-param">mutant_list=[]</em>, <em class="sig-param">nreps=50</em>, <em class="sig-param">restrict_to_chain=False</em>, <em class="sig-param">max_pack_rounds=25</em>, <em class="sig-param">min_cst_sd=None</em>, <em class="sig-param">min_restrict_radius=False</em>, <em class="sig-param">PDB_res=False</em>, <em class="sig-param">dump_ref_pdb=False</em>, <em class="sig-param">dump_mut_pdb=False</em>, <em class="sig-param">pdb_base=''</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantCombinationsExperimentRunner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.AbstractExperimentRunner" title="PyRosetta_TACC_MPI.AbstractExperimentRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.AbstractExperimentRunner</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner.build_job_list">
+<code class="sig-name descname">build_job_list</code><span class="sig-paren">(</span><em class="sig-param">mutant_list</em>, <em class="sig-param">replicates</em>, <em class="sig-param">shuffle_jobs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantCombinationsExperimentRunner.build_job_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner.build_job_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner.dump_ddg_results">
+<code class="sig-name descname">dump_ddg_results</code><span class="sig-paren">(</span><em class="sig-param">outfile_name</em>, <em class="sig-param">header=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantCombinationsExperimentRunner.dump_ddg_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner.dump_ddg_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump results to a .tsv file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner.setup_jobs">
+<code class="sig-name descname">setup_jobs</code><span class="sig-paren">(</span><em class="sig-param">mutant_list</em>, <em class="sig-param">nreps</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantCombinationsExperimentRunner.setup_jobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner.setup_jobs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.MutantddGPackerJob">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">MutantddGPackerJob</code><span class="sig-paren">(</span><em class="sig-param">start_pose_pdb</em>, <em class="sig-param">residue</em>, <em class="sig-param">chain</em>, <em class="sig-param">AA</em>, <em class="sig-param">replicate</em>, <em class="sig-param">convergence_fn=None</em>, <em class="sig-param">conv_threshold=0.1</em>, <em class="sig-param">repack_radius=10</em>, <em class="sig-param">scorefn='mm_std'</em>, <em class="sig-param">mintype='dfpmin_armijo_nonmonotone'</em>, <em class="sig-param">n_pack_steps=3</em>, <em class="sig-param">n_min_steps=1</em>, <em class="sig-param">max_rounds=100</em>, <em class="sig-param">min_cst_sd=None</em>, <em class="sig-param">min_restrict_radius=False</em>, <em class="sig-param">restrict_to_chain=False</em>, <em class="sig-param">PDB_res=False</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantddGPackerJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantddGPackerJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.AbstractPackerJob" title="PyRosetta_TACC_MPI.AbstractPackerJob"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.AbstractPackerJob</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantddGPackerJob.dump_mut_pdb">
+<code class="sig-name descname">dump_mut_pdb</code><span class="sig-paren">(</span><em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantddGPackerJob.dump_mut_pdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantddGPackerJob.dump_mut_pdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantddGPackerJob.dump_ref_pdb">
+<code class="sig-name descname">dump_ref_pdb</code><span class="sig-paren">(</span><em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantddGPackerJob.dump_ref_pdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantddGPackerJob.dump_ref_pdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantddGPackerJob.get_result">
+<code class="sig-name descname">get_result</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantddGPackerJob.get_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantddGPackerJob.get_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.MutantddGPackerJob.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#MutantddGPackerJob.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.MutantddGPackerJob.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="PyRosetta_TACC_MPI.NSAAS_PATCH">
+<code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">NSAAS_PATCH</code><em class="property"> = {}</em><a class="headerlink" href="#PyRosetta_TACC_MPI.NSAAS_PATCH" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘ACK’:{‘cognateAA’:’LYS’,
+‘type’:chemical.VariantType.ACETYLATION},
+‘PHS’:{‘cognateAA’:’SER’,
+‘type’:chemical.VariantType.PHOSPHORYLATION},
+‘PHT’:{‘cognateAA’:’THR’,
+‘type’:chemical.VariantType.PHOSPHORYLATION},
+‘PHY’:{‘cognateAA’:’TYR’,
+‘type’:chemical.VariantType.PHOSPHORYLATION}}</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.PackSinglePoseJob">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">PackSinglePoseJob</code><span class="sig-paren">(</span><em class="sig-param">in_pdb</em>, <em class="sig-param">MPI_rank</em>, <em class="sig-param">convergence_fn=None</em>, <em class="sig-param">conv_threshold=0.1</em>, <em class="sig-param">repack_radius=10</em>, <em class="sig-param">scorefn='mm_std'</em>, <em class="sig-param">mintype='dfpmin_armijo_nonmonotone'</em>, <em class="sig-param">n_pack_steps=1</em>, <em class="sig-param">n_min_steps=1</em>, <em class="sig-param">max_rounds=100</em>, <em class="sig-param">restrict_to_chain=None</em>, <em class="sig-param">kT=1.0</em>, <em class="sig-param">MCmover=True</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">constraint_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#PackSinglePoseJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.PackSinglePoseJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.AbstractPackerJob" title="PyRosetta_TACC_MPI.AbstractPackerJob"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.AbstractPackerJob</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.PackSinglePoseJob.dump_pose">
+<code class="sig-name descname">dump_pose</code><span class="sig-paren">(</span><em class="sig-param">outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#PackSinglePoseJob.dump_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.PackSinglePoseJob.dump_pose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.PackSinglePoseJob.pack_pose">
+<code class="sig-name descname">pack_pose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#PackSinglePoseJob.pack_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.PackSinglePoseJob.pack_pose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="PyRosetta_TACC_MPI.PyRosettaError">
+<em class="property">exception </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">PyRosettaError</code><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#PyRosettaError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.PyRosettaError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="PyRosetta_TACC_MPI.SecondaryMutantScanExperimentRunner">
+<em class="property">class </em><code class="sig-prename descclassname">PyRosetta_TACC_MPI.</code><code class="sig-name descname">SecondaryMutantScanExperimentRunner</code><span class="sig-paren">(</span><em class="sig-param">start_pose_pdbs</em>, <em class="sig-param">rosetta_init_options</em>, <em class="sig-param">comm</em>, <em class="sig-param">center_residue</em>, <em class="sig-param">center_residue_AA</em>, <em class="sig-param">center_residue_chain</em>, <em class="sig-param">mutate_radius</em>, <em class="sig-param">center_res_ref_pose</em>, <em class="sig-param">mutate_secondary_to_AAs</em>, <em class="sig-param">nreps=50</em>, <em class="sig-param">restrict_to_chain=False</em>, <em class="sig-param">max_pack_rounds=25</em>, <em class="sig-param">min_cst_sd=None</em>, <em class="sig-param">min_restrict_radius=False</em>, <em class="sig-param">PDB_res=False</em>, <em class="sig-param">dump_ref_pdb=False</em>, <em class="sig-param">dump_mut_pdb=False</em>, <em class="sig-param">pdb_base=''</em>, <em class="sig-param">verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#SecondaryMutantScanExperimentRunner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.SecondaryMutantScanExperimentRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner" title="PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyRosetta_TACC_MPI.MutantCombinationsExperimentRunner</span></code></a></p>
+<dl class="method">
+<dt id="PyRosetta_TACC_MPI.SecondaryMutantScanExperimentRunner.residue_CAs_in_radius">
+<code class="sig-name descname">residue_CAs_in_radius</code><span class="sig-paren">(</span><em class="sig-param">center_pose</em>, <em class="sig-param">center_chain</em>, <em class="sig-param">centerAA</em>, <em class="sig-param">radius</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyRosetta_TACC_MPI.html#SecondaryMutantScanExperimentRunner.residue_CAs_in_radius"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyRosetta_TACC_MPI.SecondaryMutantScanExperimentRunner.residue_CAs_in_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of residues with C-alpha atoms within ‘radius’ distance from centerAA’a C-alpha</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Bioinfo Nats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Pierre Bedoucha.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/PyRosetta_TACC_MPI.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

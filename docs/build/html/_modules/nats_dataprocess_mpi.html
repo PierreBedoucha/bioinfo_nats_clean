@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>nats_dataprocess_mpi &#8212; Bioinfo Nats 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for nats_dataprocess_mpi</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">move</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">fdopen</span><span class="p">,</span> <span class="n">remove</span>
+<span class="kn">from</span> <span class="nn">pyrosetta</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">rosetta.core.scoring</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">rosetta.protocols.relax</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">rosetta.core.pose</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">rosetta.protocols.constraint_movers</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pyrosetta.mpi</span> <span class="k">import</span> <span class="n">mpi_init</span>
+<span class="kn">from</span> <span class="nn">PyRosetta_TACC_MPI</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">MPI TEST</span>
+<span class="sd">This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
+<span class="sd">The scoring function parameters are detailed in the _main function. The structures are scored before and</span>
+<span class="sd">after a relaxation step done with the FastRelax algorithm.</span>
+<span class="sd">The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="read_pdb_chains"><a class="viewcode-back" href="../nats_dataprocess_mpi.html#nats_dataprocess_mpi.read_pdb_chains">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_chains</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in</span>
+<span class="sd">    ../data/input/etc.</span>
+<span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: selected chain letter</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;../data/input/etc&quot;</span><span class="p">,</span> <span class="s2">&quot;pdb_chains.txt&quot;</span><span class="p">)</span>
+    <span class="n">pdb_chains_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+                <span class="n">line_array</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">chains_array</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line_array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+                    <span class="n">pdb_chains_dict</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">chains_array</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pdb_chains_dict</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">line_array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="n">pdb_chains_dict</span></div>
+
+
+<div class="viewcode-block" id="score_proteins"><a class="viewcode-back" href="../nats_dataprocess_mpi.html#nats_dataprocess_mpi.score_proteins">[docs]</a><span class="k">def</span> <span class="nf">score_proteins</span><span class="p">(</span><span class="n">pdb_filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Structure scoring function. Launches the main scoring function on global number of replicates</span>
+<span class="sd">    :param pdb_filename: pdb file name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_of_repeats</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">_main</span><span class="p">(</span><span class="n">pdb_filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="pdb_occupancy"><a class="viewcode-back" href="../nats_dataprocess_mpi.html#nats_dataprocess_mpi.pdb_occupancy">[docs]</a><span class="k">def</span> <span class="nf">pdb_occupancy</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cleans the pdb files in the current directory by quickly replacing with its fixed version and launches the scoring.</span>
+<span class="sd">    Each cleaned pdb filename is appended to a list to later log the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="c1"># Read pdbid // chain mapping</span>
+    <span class="n">pdb_chains_dict</span> <span class="o">=</span> <span class="n">read_pdb_chains</span><span class="p">()</span>
+    <span class="n">chains</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;minimized&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">fh</span><span class="p">,</span> <span class="n">abs_path</span> <span class="o">=</span> <span class="n">mkstemp</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="ow">in</span> <span class="n">pdb_chains_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">chains</span> <span class="o">=</span> <span class="n">pdb_chains_dict</span><span class="p">[</span><span class="n">file</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span>
+            <span class="k">with</span> <span class="n">fdopen</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">new_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f1</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ATOM  &#39;</span><span class="p">:</span>
+                            <span class="n">temp</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">],</span> <span class="s1">&#39;</span><span class="si">{:6.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">60</span><span class="p">],</span> <span class="n">temp</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;HSD&#39;</span> <span class="ow">or</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;HSE&#39;</span><span class="p">:</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">],</span> <span class="s1">&#39;HIS&#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;SER&#39;</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; O  &#39;</span><span class="p">:</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; O  &#39;</span><span class="p">,</span> <span class="s1">&#39; OXT&#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;CYX&#39;</span> <span class="ow">or</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; CYM&#39;</span><span class="p">:</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">],</span> <span class="s1">&#39;CYS &#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">chains</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">new_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line</span><span class="p">)</span>
+                            <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">:</span><span class="mi">22</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chains</span><span class="p">:</span>
+                                <span class="n">new_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line</span><span class="p">)</span>
+            <span class="c1"># Remove original file</span>
+            <span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="c1"># Move new file</span>
+            <span class="n">move</span><span class="p">(</span><span class="n">abs_path</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+
+            <span class="n">pdbfile_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">score_proteins</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+
+<span class="c1"># Global variables</span>
+<span class="n">pdbfile_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">score_init_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">score_relax_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">score_relax_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">nb_of_repeats</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">_main</span><span class="p">(</span><span class="n">start_pdb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main structure scoring function. Describes the scoring parameters and set the values of two global lists containing</span>
+<span class="sd">    the initial score before relaxation on one hand, and the final score after relaxation on the other.</span>
+<span class="sd">    Handles the MPI job for each submitted pose.</span>
+<span class="sd">    :param pdb_filename: pdb file name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_pdb</span> <span class="o">=</span> <span class="n">start_pdb</span>
+
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+    <span class="n">n_start_poses</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">n_start_poses</span><span class="p">:</span>
+        <span class="n">n_start_poses</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_start_poses</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_start_poses</span> <span class="o">=</span> <span class="n">size</span>
+
+    <span class="n">rosetta_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-ignore_unrecognized_res false&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-ex1&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-ex2&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-use_input_sc&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-flip_HNQ&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-no_optH false&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-relax:constrain_relax_to_start_coords&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-relax:coord_constrain_sidechains&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-relax:ramp_constraints false&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-constant_seed&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;-no_his_his_pairE&quot;</span><span class="p">,</span>
+                       <span class="c1"># &quot;-linmem_ig 10&quot;,</span>
+                       <span class="s2">&quot;-nblist_autoupdate true&quot;</span><span class="p">,</span>
+                       <span class="c1"># &quot;-relax:sc_cst_maxdist 3&quot;,</span>
+                       <span class="c1"># &quot;-relax:coord_cst_width 1.0&quot;,</span>
+                       <span class="s2">&quot;-relax:coord_cst_stdev 0.5&quot;</span><span class="p">]</span>
+
+    <span class="n">mpi_init</span><span class="p">(</span><span class="n">extra_options</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rosetta_options</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">n_start_poses</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">:</span>
+        <span class="n">job_div</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">n_start_poses</span> <span class="o">/</span> <span class="n">size</span><span class="p">))</span>
+        <span class="n">job_rem</span> <span class="o">=</span> <span class="n">n_start_poses</span> <span class="o">-</span> <span class="p">(</span><span class="n">job_div</span> <span class="o">*</span> <span class="n">size</span><span class="p">)</span>
+        <span class="n">job_div_procs</span> <span class="o">=</span> <span class="n">size</span> <span class="o">-</span> <span class="n">job_rem</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">&lt;=</span> <span class="n">job_div_procs</span><span class="p">:</span>
+            <span class="n">n_local_jobs</span> <span class="o">=</span> <span class="n">job_div</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_local_jobs</span> <span class="o">=</span> <span class="n">job_div</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">&lt;=</span> <span class="n">n_start_poses</span><span class="p">:</span>
+            <span class="n">n_local_jobs</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_local_jobs</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_local_jobs</span><span class="p">):</span>
+        <span class="n">pack_id</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="n">n_local_jobs</span><span class="p">)</span>
+        <span class="n">outfile_name</span> <span class="o">=</span> <span class="n">out_pdb</span> <span class="o">+</span> <span class="s2">&quot;.pack&quot;</span> <span class="o">+</span> <span class="n">pack_id</span> <span class="o">+</span> <span class="s2">&quot;.pdb&quot;</span>
+        <span class="n">packer_job</span> <span class="o">=</span> <span class="n">FastRelaxPoseJob</span><span class="p">(</span><span class="n">start_pdb</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">scorefn</span><span class="o">=</span><span class="s2">&quot;ref2015_cst&quot;</span><span class="p">)</span>
+        <span class="n">packer_job</span><span class="o">.</span><span class="n">pack_pose</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;POSE </span><span class="si">%d</span><span class="s2"> in PROCESS </span><span class="si">%d</span><span class="s2"> COMPLETE, WRITING TO </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">outfile_name</span><span class="p">))</span>
+        <span class="n">packer_job</span><span class="o">.</span><span class="n">dump_pose</span><span class="p">(</span><span class="n">outfile_name</span><span class="p">)</span>
+
+        <span class="n">score_relax_dict</span><span class="p">[</span>
+            <span class="n">start_pdb</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">packer_job</span><span class="o">.</span><span class="n">final_score</span> <span class="o">/</span> <span class="n">pyrosetta</span><span class="o">.</span><span class="n">rosetta</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">Pose</span><span class="o">.</span><span class="n">total_residue</span><span class="p">(</span>
+            <span class="n">packer_job</span><span class="o">.</span><span class="n">pose</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">pdb_occupancy</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">csv</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">wtr</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;pyrosetta_out.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">lineterminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span><span class="p">,</span>
+                     <span class="n">escapechar</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">wtr</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s1">&#39;pdb_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;rmsd_init&#39;</span><span class="p">,</span> <span class="s1">&#39;score_init&#39;</span><span class="p">,</span> <span class="s1">&#39;rmsd_relax&#39;</span><span class="p">,</span> <span class="s1">&#39;score_relax&#39;</span><span class="p">])</span>
+
+    <span class="n">padded_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">nb_of_repeats</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_init_list</span><span class="p">))</span>
+    <span class="n">padded_list</span><span class="p">[::</span><span class="n">nb_of_repeats</span><span class="p">]</span> <span class="o">=</span> <span class="n">score_init_list</span>
+    <span class="n">padded_list_rmsd</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">nb_of_repeats</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_init_list</span><span class="p">))</span>
+
+    <span class="n">list_write</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">score_relax_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">padded_list_rmsd</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">padded_list</span><span class="p">),</span>
+                  <span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">padded_list_rmsd</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">score_relax_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+    <span class="n">wtr</span><span class="o">.</span><span class="n">writerows</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">list_write</span><span class="p">)])</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Bioinfo Nats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Pierre Bedoucha.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>nats_dataprocess module &#8212; Bioinfo Nats 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-nats_dataprocess">
+<span id="nats-dataprocess-module"></span><h1>nats_dataprocess module<a class="headerlink" href="#module-nats_dataprocess" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="nats_dataprocess.pdb_occupancy">
+<code class="sig-prename descclassname">nats_dataprocess.</code><code class="sig-name descname">pdb_occupancy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess.html#pdb_occupancy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess.pdb_occupancy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans the pdb files in the current directory by quickly replacing its fixed version and launches the scoring
+Each cleaned pdb filename is appended to a list to later log the data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nats_dataprocess.read_pdb_chains">
+<code class="sig-prename descclassname">nats_dataprocess.</code><code class="sig-name descname">read_pdb_chains</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess.html#read_pdb_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess.read_pdb_chains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in
+../data/input/etc.
+:return: Dictionary. Keys: structure pdb id, Values: selected chain letter
+:rtype: dict</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nats_dataprocess.replace">
+<code class="sig-prename descclassname">nats_dataprocess.</code><code class="sig-name descname">replace</code><span class="sig-paren">(</span><em class="sig-param">file_path</em>, <em class="sig-param">pattern</em>, <em class="sig-param">subst</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess.html#replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Small helper function to replace a str pattern by another one in a given file.
+:param file_path: File path of the file to consider
+:param pattern: str pattern to replace
+:param subst: str pattern for replacing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nats_dataprocess.score_proteins">
+<code class="sig-prename descclassname">nats_dataprocess.</code><code class="sig-name descname">score_proteins</code><span class="sig-paren">(</span><em class="sig-param">pdb_filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess.html#score_proteins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess.score_proteins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main structure scoring function. Describes the scoring parameters and set the values of two global lists containing
+the initial score before relaxation on one hand, and the final score after relaxation on the other.
+:param pdb_filename: pdb file name</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Bioinfo Nats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Pierre Bedoucha.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/nats_dataprocess.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

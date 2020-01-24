@@ -16,13 +16,13 @@ nsAAs = ['PRK', 'ACK', '3IY', 'NOY', 'AZF', 'A69', 'B36', 'NBY', 'PHS', 'PHT', '
 NSAAS_PATCH = {}  # Need to get rid of refs to this in code
 """
 'ACK':{'cognateAA':'LYS',
-                      'type':chemical.VariantType.ACETYLATION},
-               'PHS':{'cognateAA':'SER',
-                      'type':chemical.VariantType.PHOSPHORYLATION},
-               'PHT':{'cognateAA':'THR',
-                      'type':chemical.VariantType.PHOSPHORYLATION},
-               'PHY':{'cognateAA':'TYR',
-                      'type':chemical.VariantType.PHOSPHORYLATION}}
+'type':chemical.VariantType.ACETYLATION},
+'PHS':{'cognateAA':'SER',
+'type':chemical.VariantType.PHOSPHORYLATION},
+'PHT':{'cognateAA':'THR',
+'type':chemical.VariantType.PHOSPHORYLATION},
+'PHY':{'cognateAA':'TYR',
+'type':chemical.VariantType.PHOSPHORYLATION}}
 """
 
 
