@@ -71,13 +71,15 @@ def read_msa_fasta():
     return pdb_align_dict
 
 
-def compute_rmsd_align(pdb_path1, pdb_path2):
+def compute_rmsd(pdb_path1, pdb_path2, **kwargs):
     """
-    Computes RMS distance between two pdb structures and only for the aligned regions in the multiple sequence alignment
+    Computes RMS distance between two pdb structures and only from start to end indices in their sequence
     :param pdb_path1: First pdb file name
     :type pdb_path1: str
     :param pdb_path2: First pdb file name
     :type pdb_path2: str
+    :param kwargs: Keyword arguments with optional start and end in the pdb sequence instead of obtaining the
+    boundaries from reading the msa data.
     :return: Rmsd value between pdb structures
     :rtype: float
     """
@@ -91,75 +93,48 @@ def compute_rmsd_align(pdb_path1, pdb_path2):
     if not os.path.exists(pdb_path2):
         file2_ref_array[-3] = "1"
         pdb_path2 = "_".join(file2_ref_array)
-    pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
-    pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
             if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
                 if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
-                    if (int(line1[23:26].strip()) in pdb1_res_list) and \
-                            (int(line2[23:26].strip()) in pdb2_res_list):
-                        try:
-                            dist = distance.cdist(
-                                np.array([np.float64(val) for val in line1[31:54].split()]).reshape(1, -1),
-                                np.array([np.float64(val) for val in line2[31:54].split()]).reshape(1, -1))
-                        except ValueError as ex:
-                            dist = distance.cdist(np.array([np.float64(line1[30:38]),
-                                                            np.float64(line1[38:46]),
-                                                            np.float64(line1[46:54])]).reshape(1, -1),
-                                                  np.array([np.float64(line2[30:38]),
-                                                            np.float64(line2[38:46]),
-                                                            np.float64(line2[46:54])]).reshape(1, -1))
-                        sum_dist_sq += math.pow(dist[0][0], 2)
-                        atom_cpt += 1
+                    if 'start' in kwargs and 'end' in kwargs:
+                        if (kwargs.get("start") <= int(line1[23:26].strip()) <= kwargs.get("end")) \
+                                and (kwargs.get("start") <= int(line2[23:26].strip()) <= kwargs.get("end")):
+                            distances = calc_distance(line1, line2)
+                            sum_dist_sq += math.pow(distances[0][0], 2)
+                            atom_cpt += 1
+                    else:
+                        pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
+                        pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
+                        if (int(line1[23:26].strip()) in pdb1_res_list) and \
+                                (int(line2[23:26].strip()) in pdb2_res_list):
+                            distances = calc_distance(line1, line2)
+                            sum_dist_sq += math.pow(distances[0][0], 2)
+                            atom_cpt += 1
     rmsd = math.sqrt(sum_dist_sq / atom_cpt)
     return rmsd
 
 
-def compute_rmsd(pdb_path1, pdb_path2, start, end):
+def calc_distance(pdbfile_line_1, pdbfile_line_2):
     """
-    Computes RMS distance between two pdb structures and only from start to end indices in their sequence
-    :param pdb_path1: First pdb file name
-    :type pdb_path1: str
-    :param pdb_path2: First pdb file name
-    :type pdb_path2: str
-    :param start: Start sequence index for rmsd computation
-    :type start: int
-    :param end: End sequence index for rmsd computation
-    :type end: int
-    :return: Rmsd value between pdb structures
-    :rtype: float
+    Calculate in line distance (Angstroms) between two atoms.
+    :param pdbfile_line_1: Str line for atom line in first pdb file
+    :param pdbfile_line_2: Str line for atom line in second pdb file
+    :return: Distance array from distance.cdist method
+    :rtype: float[][]
     """
-    sum_dist_sq = 0
-    atom_cpt = 1
-    if not os.path.exists(pdb_path1):
-        pdb_ref_array = pdb_path1.split('_')
-        pdb_ref_array[-3] = "1"
-        pdb_path1 = "_".join(pdb_ref_array)
-    if not os.path.exists(pdb_path2):
-        pdb_ref_array = pdb_path2.split('_')
-        pdb_ref_array[-3] = "1"
-        pdb_path2 = "_".join(pdb_ref_array)
-    with open(pdb_path1) as f1, open(pdb_path2) as f2:
-        for line1, line2 in zip(f1, f2):
-            if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
-                if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
-                    if (start <= int(line1[23:26].strip()) <= end) and (start <= int(line2[23:26].strip()) <= end):
-                        try:
-                            dist = distance.cdist(
-                                np.array([np.float64(val) for val in line1[31:54].split()]).reshape(1, -1),
-                                np.array([np.float64(val) for val in line2[31:54].split()]).reshape(1, -1))
-                        except ValueError as ex:
-                            dist = distance.cdist(np.array([np.float64(line1[30:38]),
-                                                            np.float64(line1[38:46]),
-                                                            np.float64(line1[46:54])]).reshape(1, -1),
-                                                  np.array([np.float64(line2[30:38]),
-                                                            np.float64(line2[38:46]),
-                                                            np.float64(line2[46:54])]).reshape(1, -1))
-                        sum_dist_sq += math.pow(dist[0][0], 2)
-                        atom_cpt += 1
-    rmsd = math.sqrt(sum_dist_sq / atom_cpt)
-    return rmsd
+    try:
+        dist = distance.cdist(
+            np.array([np.float64(val) for val in pdbfile_line_1[31:54].split()]).reshape(1, -1),
+            np.array([np.float64(val) for val in pdbfile_line_2[31:54].split()]).reshape(1, -1))
+    except ValueError as ex:
+        dist = distance.cdist(np.array([np.float64(pdbfile_line_1[30:38]),
+                                        np.float64(pdbfile_line_1[38:46]),
+                                        np.float64(pdbfile_line_1[46:54])]).reshape(1, -1),
+                              np.array([np.float64(pdbfile_line_2[30:38]),
+                                        np.float64(pdbfile_line_2[38:46]),
+                                        np.float64(pdbfile_line_2[46:54])]).reshape(1, -1))
+    return dist
 
 
 def select_ca_align(pdb_path, start, end):
@@ -196,7 +171,6 @@ def f(x, y, z, **kwargs):
     :param y: y value for the annotation poistion on plot
     :param z: Annotated value
     :param kwargs: keyword arguments
-    :param kwargs: keyword arguments
     """
     ax = sns.pointplot(x, y, **kwargs)
     ax.axhline(5, alpha=0.5, color='grey')
@@ -222,7 +196,7 @@ def facet_scatter(x, y, **kwargs):
 amplitude_max = 30
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook21.csv')
+    train = pd.read_csv('Workbook24.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -234,8 +208,7 @@ if __name__ == '__main__':
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[3], "a{0}.00".format(str(amplitude_max)))
                 if file.split("_")[-2] != "0.00":
-                    # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
-                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd_align(file, file_ref)
+                    train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = compute_rmsd(file, file_ref)
                 else:
                     train.loc[train.pdb_filename == "1_" + file, 'rmsd_init'] = 0.00
             elif 'minimized' in file:
@@ -280,7 +253,6 @@ if __name__ == '__main__':
                     super_imposer.apply(sample_model.get_atoms())
 
                     file = '_'.join(file.split('_')[-8:])
-                    # train.loc[train.pdb_filename == file, 'rmsd_relax'] = compute_rmsd(file, file_ref, start, end)
                     train.loc[train.pdb_filename == "1_" + file, 'rmsd_relax'] = super_imposer.rms
                 else:
                     file_array = file.split('_')
@@ -326,7 +298,6 @@ if __name__ == '__main__':
     # Plotting the data
 
     h.map(facet_scatter, 'amplitude', 'score_relax', data=train)
-    # h.map(sns.boxplot, 'amplitude', 'score_relax', data=train)
 
     for idx, v in enumerate(train.pdbid.unique()):
         h.axes[idx].set_xticklabels(train.loc[train.pdbid == v, 'amplitude'].unique(), rotation=45)

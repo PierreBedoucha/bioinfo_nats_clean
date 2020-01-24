@@ -1,7 +1,5 @@
 import pandas as pd
 import seaborn as sns
-from tempfile import mkstemp
-from shutil import move
 import os
 import matplotlib.pyplot as plt
 import math
@@ -11,8 +9,20 @@ import Bio.PDB
 import Bio.AlignIO as al
 from sklearn import preprocessing
 
+"""
+This script plots the lines benchmarking the energy score (pyROSETTA API) per structure 
+in the current directory and after their relaxation and per amplitudes of deformation.
+The RMSD is overlaid as continuous color scale for each datapoint. The energy score is normalized per structure residue.
+"""
+
 
 def read_pfam_align():
+    """
+    Reads multiple sequence alignment profile from pfam. It determines the envelope (start and end) of the GNAT fold
+    Reads values from pfam_env.txt file in ../data/input/etc
+    :return: Dictionary. Keys: structure pdb id, Values:
+    :rtype: dict
+    """
     file_path = os.path.join("../data/input/etc", "pfam_env.txt")
     pdb_align_dict = {}
     with open(file_path) as f1:
@@ -21,7 +31,13 @@ def read_pfam_align():
                 pdb_align_dict[line[0:4]] = (int(line[15:17]), int(line[21:24]))
     return pdb_align_dict
 
+
 def read_pdb_starts():
+    """
+    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
+    :return: Dictionary. Keys: structure pdb id, Values: starting index
+    :rtype: dict
+    """
     file_path = os.path.join("../data/input/etc", "pdb_starts.txt")
     pdb_starts_dict = {}
     with open(file_path) as f1:
@@ -31,9 +47,17 @@ def read_pdb_starts():
                 pdb_starts_dict[line[0:4]] = int(line_array[1])
     return pdb_starts_dict
 
+
 def read_msa_fasta():
-    pdb_align_dict = {'3tfy':[],'5isv':[],'4pv6':[],'2z0z':[],'1s7l':[],'2x7b':[],'3igr':[],'5k18':[],'2cns':[],
-                      '5hh0':[],'5wjd':[],'5icv':[],'4kvm':[],'4u9v':[],}
+    """
+    Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
+    Note: here, only the aligned regions are of interest, gaps are removed.
+    :return: Dictionary. Keys: structure pdb id, Values: aligned indices
+    :rtype: dict
+    """
+    pdb_align_dict = {'3tfy': [], '5isv': [], '4pv6': [], '2z0z': [], '1s7l': [], '2x7b': [], '3igr': [], '5k18': [],
+                      '2cns': [],
+                      '5hh0': [], '5wjd': [], '5icv': [], '4kvm': [], '4u9v': [], }
     file_path = os.path.join("../data/input/etc", "nats_alignment.afasta")
     records = al.read(open(file_path), "fasta")
     tlist = list(zip(*records))
@@ -46,7 +70,19 @@ def read_msa_fasta():
                     pdb_align_dict[rec.id[0:4]].append(res_cpt + read_pdb_starts()[rec.id[0:4]])
     return pdb_align_dict
 
-def compute_rmsd_align(pdb_path1, pdb_path2):
+
+def compute_rmsd(pdb_path1, pdb_path2, **kwargs):
+    """
+    Computes RMS distance between two pdb structures and only from start to end indices in their sequence
+    :param pdb_path1: First pdb file name
+    :type pdb_path1: str
+    :param pdb_path2: First pdb file name
+    :type pdb_path2: str
+    :param kwargs: Keyword arguments with optional start and end in the pdb sequence instead of obtaining the
+    boundaries from reading the msa data.
+    :return: Rmsd value between pdb structures
+    :rtype: float
+    """
     sum_dist_sq = 0
     atom_cpt = 1
     file1_ref_array = pdb_path1.split('_')
@@ -57,101 +93,85 @@ def compute_rmsd_align(pdb_path1, pdb_path2):
     if not os.path.exists(pdb_path2):
         file2_ref_array[-3] = "1"
         pdb_path2 = "_".join(file2_ref_array)
-    # pdb1_res_list = read_msa_fasta()[file1_ref_array[-8]]
-    # pdb2_res_list = read_msa_fasta()[file2_ref_array[-8]]
-    pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
-    pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
     with open(pdb_path1) as f1, open(pdb_path2) as f2:
         for line1, line2 in zip(f1, f2):
-            # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
             if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
                 if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
-                    if (int(line1[23:26].strip()) in pdb1_res_list) and \
-                            (int(line2[23:26].strip()) in pdb2_res_list):
-                        try:
-                            dist = distance.cdist(
-                                np.array([np.float64(val) for val in line1[31:54].split()]).reshape(1, -1),
-                                np.array([np.float64(val) for val in line2[31:54].split()]).reshape(1, -1))
-                        except ValueError as ex:
-                            dist = distance.cdist(np.array([np.float64(line1[30:38]),
-                                                            np.float64(line1[38:46]),
-                                                            np.float64(line1[46:54])]).reshape(1, -1),
-                                                  np.array([np.float64(line2[30:38]),
-                                                            np.float64(line2[38:46]),
-                                                            np.float64(line2[46:54])]).reshape(1, -1))
-                        sum_dist_sq += math.pow(dist[0][0], 2)
-                        atom_cpt += 1
+                    if 'start' in kwargs and 'end' in kwargs:
+                        if (kwargs.get("start") <= int(line1[23:26].strip()) <= kwargs.get("end")) \
+                                and (kwargs.get("start") <= int(line2[23:26].strip()) <= kwargs.get("end")):
+                            distances = calc_distance(line1, line2)
+                            sum_dist_sq += math.pow(distances[0][0], 2)
+                            atom_cpt += 1
+                    else:
+                        pdb1_res_list = ca_align_dict[file1_ref_array[-8]]
+                        pdb2_res_list = ca_align_dict[file2_ref_array[-8]]
+                        if (int(line1[23:26].strip()) in pdb1_res_list) and \
+                                (int(line2[23:26].strip()) in pdb2_res_list):
+                            distances = calc_distance(line1, line2)
+                            sum_dist_sq += math.pow(distances[0][0], 2)
+                            atom_cpt += 1
     rmsd = math.sqrt(sum_dist_sq / atom_cpt)
     return rmsd
 
-def compute_rmsd(pdb_path1, pdb_path2, start, end):
-    sum_dist_sq = 0
-    atom_cpt = 1
-    if not os.path.exists(pdb_path1):
-        file_ref_array = pdb_path1.split('_')
-        file_ref_array[-3] = "1"
-        pdb_path1 = "_".join(file_ref_array)
-    if not os.path.exists(pdb_path2):
-        file_ref_array = pdb_path2.split('_')
-        file_ref_array[-3] = "1"
-        pdb_path2 = "_".join(file_ref_array)
-    with open(pdb_path1) as f1, open(pdb_path2) as f2:
-        for line1, line2 in zip(f1, f2):
-            # if line1[21:22] == pdb_current_chain and 'ATOM' in line1[0:6]:
-            if 'ATOM' in line1[0:6] and ' CA ' in line1[12:16]:
-                if 'ATOM' in line2[0:6] and ' CA ' in line2[12:16]:
-                    if (start <= int(line1[23:26].strip()) <= end) and (start <= int(line2[23:26].strip()) <= end):
-                        try:
-                            dist = distance.cdist(
-                                np.array([np.float64(val) for val in line1[31:54].split()]).reshape(1, -1),
-                                np.array([np.float64(val) for val in line2[31:54].split()]).reshape(1, -1))
-                        except ValueError as ex:
-                            dist = distance.cdist(np.array([np.float64(line1[30:38]),
-                                                            np.float64(line1[38:46]),
-                                                            np.float64(line1[46:54])]).reshape(1, -1),
-                                                  np.array([np.float64(line2[30:38]),
-                                                            np.float64(line2[38:46]),
-                                                            np.float64(line2[46:54])]).reshape(1, -1))
-                        # print(dist[0][0])
-                        sum_dist_sq += math.pow(dist[0][0], 2)
-                        atom_cpt += 1
-    rmsd = math.sqrt(sum_dist_sq / atom_cpt)
-    return rmsd
 
-def select_CA_align(pdb_path, start, end):
-    with open(pdb_path) as f1:
-        for line in f1:
-            if 'ATOM' in line[0:6] and ' CA ' in line[12:16]:
-                if start <= int(line[23:26].strip()) <= end:
-                    # Append Atom id or Resid???
-                    # ca_align_list.append(int(line[6:11].strip())) # Atom id
-                    ca_align_list.append(int(line[23:26].strip()))  # Resid
-
-# Global variables (Ugly)
-ca_align_list = []
-ca_align_dict = read_msa_fasta()
+def calc_distance(pdbfile_line_1, pdbfile_line_2):
+    """
+    Calculate in line distance (Angstroms) between two atoms.
+    :param pdbfile_line_1: Str line for atom line in first pdb file
+    :param pdbfile_line_2: Str line for atom line in second pdb file
+    :return: Distance array from distance.cdist method
+    :rtype: float[][]
+    """
+    try:
+        dist = distance.cdist(
+            np.array([np.float64(val) for val in pdbfile_line_1[31:54].split()]).reshape(1, -1),
+            np.array([np.float64(val) for val in pdbfile_line_2[31:54].split()]).reshape(1, -1))
+    except ValueError as ex:
+        dist = distance.cdist(np.array([np.float64(pdbfile_line_1[30:38]),
+                                        np.float64(pdbfile_line_1[38:46]),
+                                        np.float64(pdbfile_line_1[46:54])]).reshape(1, -1),
+                              np.array([np.float64(pdbfile_line_2[30:38]),
+                                        np.float64(pdbfile_line_2[38:46]),
+                                        np.float64(pdbfile_line_2[46:54])]).reshape(1, -1))
+    return dist
 
 
-def f(x,y,z, **kwargs):
-    ax = sns.pointplot(x,y,**kwargs)
+def f(x, y, z, **kwargs):
+    """
+    Add annotation on seaborn plot
+    :param x: x value for the annotation position on plot
+    :param y: y value for the annotation poistion on plot
+    :param z: Annotated value
+    :param kwargs: keyword arguments
+    """
+    ax = sns.pointplot(x, y, **kwargs)
     ax.axhline(5, alpha=0.5, color='grey')
     for i in range(len(x)):
-        ax.annotate('{:6.2f}'.format(z.values[i]), xy=(i, z.values[i]),fontsize=8,
-                    color=kwargs.get("color","k"),
-                    bbox=dict(pad=.9,alpha=1, fc='w',color='none'),
-                    va='center', ha='center',weight='bold')
+        ax.annotate('{:6.2f}'.format(z.values[i]), xy=(i, z.values[i]), fontsize=8,
+                    color=kwargs.get("color", "k"),
+                    bbox=dict(pad=.9, alpha=1, fc='w', color='none'),
+                    va='center', ha='center', weight='bold')
+
 
 def facet_scatter(x, y, c, **kwargs):
-    """Draw scatterplot with point colors from a faceted DataFrame columns."""
+    """
+    Draw scatterplot with point colors from a faceted DataFrame columns.
+    :param x: x axis data
+    :param y: y axis data
+    :param kwargs: keyword arguments
+    """
     kwargs.pop("color")
     plt.scatter(x, y, c=c, **kwargs)
 
 
 # GLOBAL VARIABLES
 amplitude_max = 30
+ca_align_list = []
+ca_align_dict = read_msa_fasta()
 
 if __name__ == '__main__':
-    train = pd.read_csv('Workbook17.csv')
+    train = pd.read_csv('Workbook24.csv')
 
     dict_ref_SC = {}
     dict_ref_relax = {}
@@ -163,8 +183,7 @@ if __name__ == '__main__':
                 file_ref_temp = file.replace(file.split("_")[-2], "0.00")
                 file_ref = file_ref_temp.replace(file_ref_temp.split("_")[3], "a{0}.00".format(str(amplitude_max)))
                 if file.split("_")[-2] != "0.00":
-                    # train.loc[train.pdb_filename == file, 'rmsd_init'] = compute_rmsd(file, file_ref, start, end)
-                    train.loc[train.pdb_filename == file + "_1", 'rmsd_init'] = compute_rmsd_align(file, file_ref)
+                    train.loc[train.pdb_filename == file + "_1", 'rmsd_init'] = compute_rmsd(file, file_ref)
                 else:
                     train.loc[train.pdb_filename == file + "_1", 'rmsd_init'] = 0.00
             elif 'minimized' in file:
@@ -174,7 +193,6 @@ if __name__ == '__main__':
                 if file.split("_")[-2] != "0.00":
                     # Align Relaxed structures and use rmsd align (CA only and pfam sequences)
                     # select_ca_align(file, start, end)
-                    # res_to_be_aligned = ca_align_list
                     res_to_be_aligned = ca_align_dict[file.split("_")[-8]]
                     pdb_parser = Bio.PDB.PDBParser(QUIET=True)
                     # Get the structures
@@ -209,17 +227,14 @@ if __name__ == '__main__':
                     super_imposer.apply(sample_model.get_atoms())
 
                     file = '_'.join(file.split('_')[-8:])
-                    # train.loc[train.pdb_filename == file, 'rmsd_relax'] = compute_rmsd(file, file_ref, start, end)
                     train.loc[train.pdb_filename == file + "_1", 'rmsd_relax'] = super_imposer.rms
                 else:
                     file_array = file.split('_')
                     file = "_".join(file_array[-8:])
                     train.loc[train.pdb_filename == file + "_1", 'rmsd_relax'] = 0.00
 
-    # train.set_index('pdb_filename', inplace=True)
     train.to_csv("test_out.csv", sep=';', encoding='utf-8')
 
-    # train['pdbid'] = train["pdb_filename"].str.split('_')[0]
     train['pdbid'] = train.pdb_filename.str[:4]
     # new data frame with split value columns
     new = train["pdb_filename"].str.split("_", n=7, expand=True)
@@ -240,34 +255,21 @@ if __name__ == '__main__':
     train = train.loc[(train['pdbid'] != "2cns")]
 
     grouped = train.groupby(["pdbid"])
-    train = grouped.apply(lambda x: x.sort_values(["amplitude"], ascending = True)).reset_index(drop=True)
+    train = grouped.apply(lambda x: x.sort_values(["amplitude"], ascending=True)).reset_index(drop=True)
 
-    # sns.set_style("whitegrid", {'axes.grid': False, 'axes.edgecolor': 'none'})
-
-    # h = sns.FacetGrid(train, col="pdbid", hue='pdbid', col_wrap=7, sharey='row', sharex='col', margin_titles=True)
-    # h = sns.FacetGrid(train, col="pdbid", palette = 'seismic', gridspec_kws={"hspace":0.4}, sharey=False, sharex=True)
     h = sns.FacetGrid(train, col="pdbid", palette='seismic', sharey=False, sharex=True, col_wrap=6, height=2, aspect=1)
-    # h.map(f, "amplitude", "score_init", "rmsd_init", scale=.7, markers="")
 
     vmin = train['rmsd_relax'].min()
     vmax = train['rmsd_relax'].max()
-    # vmin = train['rmsd_init'].min()
-    # vmax = train['rmsd_init'].max()
 
-    # cmap = sns.diverging_palette(150, 275, s=80, l=55, center="light", as_cmap=True)
-    # cmap = sns.light_palette((44,162,95), input="husl", as_cmap=True)
-    cmap = sns.light_palette("seagreen",  as_cmap=True)
+    cmap = sns.light_palette("seagreen", as_cmap=True)
 
-    # h.map(plt.plot, "amplitude", "score_relax", marker="o")
-    # h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, alpha=0.5, vmin=vmin, vmax=vmax, cmap=cmap)
     h.map(facet_scatter, "amplitude", "score_relax", "rmsd_relax", s=100, vmin=vmin, vmax=vmax, cmap=cmap)
 
     # Make space for the colorbar
     # h.fig.subplots_adjust(right=.92)
     # plt.tight_layout()
 
-    # Define a new Axes where the colorbar will go
-    # cax = h.fig.add_axes([.94, .25, .02, .6])
     cax = h.fig.add_axes([.40, .0339, .2, .023])
 
     # Get a mappable object with the same colormap as the data
