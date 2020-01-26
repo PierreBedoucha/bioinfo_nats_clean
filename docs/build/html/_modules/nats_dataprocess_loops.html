@@ -31,30 +31,37 @@
           <div class="body" role="main">
             
   <h1>Source code for nats_dataprocess_loops</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span></span><span class="sd">&quot;&quot;&quot;Analysis for Fluctuations of the loops in NATs</span>
+
+<span class="sd">    The script analyses the normalized squared fluctuation data for the first 6 normal modes (successively).</span>
+
+<span class="sd">    It plots the fluctuation graphs for the 7 protein structures (see data), adds the mean value for baseline description, and highlights</span>
+<span class="sd">    the 2 loop regions.</span>
+
+<span class="sd">    The modes of interest are the ones with the highest fluctuation values for the 2 functional loops.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">The script analyses the normalized squared fluctuation data for the first 6 normal modes (successively). It plots the</span>
-<span class="sd">fluctuation graphs for the 7 protein structures (see data), adds the mean value for baseline description, and highlights</span>
-<span class="sd">the 2 loop regions. The modes of interest are the ones with the highest fluctuation values for the 2 functional loops. </span>
-<span class="sd">&#39;&#39;&#39;</span>
-
 
 <div class="viewcode-block" id="is_outlier"><a class="viewcode-back" href="../nats_dataprocess_loops.html#nats_dataprocess_loops.is_outlier">[docs]</a><span class="k">def</span> <span class="nf">is_outlier</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">3.5</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a boolean array with True if points are outliers and False</span>
+    <span class="sd">&quot;&quot;&quot;Returns a boolean array with True if points are outliers and False</span>
 <span class="sd">    otherwise.</span>
+
 <span class="sd">    Boris Iglewicz and David Hoaglin (1993), &quot;Volume 16: How to Detect and</span>
 <span class="sd">    Handle Outliers&quot;, The ASQC Basic References in Quality Control:</span>
 <span class="sd">    Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.</span>
+
 <span class="sd">    :param points: An numobservations by numdimensions array of observations</span>
+
 <span class="sd">    :param thresh: The modified z-score to use as a threshold. Observations with</span>
-<span class="sd">    a modified z-score (based on the median absolute deviation) greater</span>
-<span class="sd">    than this value will be classified as outliers.</span>
+<span class="sd">        a modified z-score (based on the median absolute deviation) greater</span>
+<span class="sd">        than this value will be classified as outliers.</span>
+
 <span class="sd">    :return: A numobservations-length boolean array.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -70,8 +77,8 @@
 
 
 <div class="viewcode-block" id="read_pdb_starts"><a class="viewcode-back" href="../nats_dataprocess_loops.html#nats_dataprocess_loops.read_pdb_starts">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_starts</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+    <span class="sd">&quot;&quot;&quot;Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id (str), Values: starting index (ind)</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -86,11 +93,12 @@
 
 
 <div class="viewcode-block" id="read_pdb_loops"><a class="viewcode-back" href="../nats_dataprocess_loops.html#nats_dataprocess_loops.read_pdb_loops">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_loops</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reading loop locations for the different 7 protein structures.</span>
+    <span class="sd">&quot;&quot;&quot;Reading loop locations for the different 7 protein structures.</span>
+
 <span class="sd">    Reads pdb_loops.txt file from ../data/input/etc containing simple data obtained from pdb structures.</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id (str), Values: loop 1 start (int), loop 1 end (int),</span>
-<span class="sd">    loop 2 start (int), loop 2 end (int)</span>
+<span class="sd">        loop 2 start (int), loop 2 end (int)</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;../data/input/etc&quot;</span><span class="p">,</span> <span class="s2">&quot;pdb_loops.txt&quot;</span><span class="p">)</span>
@@ -107,11 +115,13 @@
 
 
 <div class="viewcode-block" id="facet_span"><a class="viewcode-back" href="../nats_dataprocess_loops.html#nats_dataprocess_loops.facet_span">[docs]</a><span class="k">def</span> <span class="nf">facet_span</span><span class="p">(</span><span class="n">pdbid</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Facet span function to apply to the matplotlib facetGrid</span>
+    <span class="sd">&quot;&quot;&quot;Facet span function to apply to the matplotlib facetGrid</span>
+
 <span class="sd">    Plots the 2 loop areas and the median dotted-line in gray</span>
+
 <span class="sd">    :param pdbid: pdbids column used as index in the dataframe</span>
 <span class="sd">    :type pdbid: str</span>
+
 <span class="sd">    :param y: fluctuation values as column in the dataframe</span>
 <span class="sd">    :type y: float</span>
 <span class="sd">    &quot;&quot;&quot;</span>

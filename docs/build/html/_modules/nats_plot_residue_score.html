@@ -31,7 +31,14 @@
           <div class="body" role="main">
             
   <h1>Source code for nats_plot_residue_score</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="sd">&quot;&quot;&quot;This script plot the energy score (from pyROSETTA API) over all the structure files and per aligned residues.</span>
+
+<span class="sd">    The structures scores are listed in the relaxed pdb files and the script will isolate it for all the residues.</span>
+
+<span class="sd">    The final results is summed through all the current directory structure files.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -39,17 +46,13 @@
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">import</span> <span class="nn">Bio.AlignIO</span> <span class="k">as</span> <span class="nn">al</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This script plot the energy score (from pyROSETTA API) over all the structure files and per aligned residues.</span>
-<span class="sd">The structures scores are listed in the relaxed pdb files and the script will isolate it for all the residues.</span>
-<span class="sd">The final results is summed through all the current directory structure files.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 
 <div class="viewcode-block" id="read_msa_fasta"><a class="viewcode-back" href="../nats_plot_residue_score.html#nats_plot_residue_score.read_msa_fasta">[docs]</a><span class="k">def</span> <span class="nf">read_msa_fasta</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.</span>
+    <span class="sd">&quot;&quot;&quot;Reads multiple structure alignment from MUSTANG.</span>
+<span class="sd">    It determines the structurally aligned core of the proteins.</span>
+
 <span class="sd">    Note: here, only the aligned regions are of interest, gaps are removed.</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: aligned indices</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -70,8 +73,8 @@
 
 
 <div class="viewcode-block" id="read_pdb_starts"><a class="viewcode-back" href="../nats_plot_residue_score.html#nats_plot_residue_score.read_pdb_starts">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_starts</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+    <span class="sd">&quot;&quot;&quot;Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: starting index</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -32,48 +32,77 @@
             
   <div class="section" id="module-nats_dataprocess_loops">
 <span id="nats-dataprocess-loops-module"></span><h1>nats_dataprocess_loops module<a class="headerlink" href="#module-nats_dataprocess_loops" title="Permalink to this headline">¶</a></h1>
+<p>Analysis for Fluctuations of the loops in NATs</p>
+<p>The script analyses the normalized squared fluctuation data for the first 6 normal modes (successively).</p>
+<p>It plots the fluctuation graphs for the 7 protein structures (see data), adds the mean value for baseline description, and highlights
+the 2 loop regions.</p>
+<p>The modes of interest are the ones with the highest fluctuation values for the 2 functional loops.</p>
 <dl class="function">
 <dt id="nats_dataprocess_loops.facet_span">
 <code class="sig-prename descclassname">nats_dataprocess_loops.</code><code class="sig-name descname">facet_span</code><span class="sig-paren">(</span><em class="sig-param">pdbid</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_loops.html#facet_span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_loops.facet_span" title="Permalink to this definition">¶</a></dt>
-<dd><p>Facet span function to apply to the matplotlib facetGrid
-Plots the 2 loop areas and the median dotted-line in gray
-:param pdbid: pdbids column used as index in the dataframe
-:type pdbid: str
-:param y: fluctuation values as column in the dataframe
-:type y: float</p>
+<dd><p>Facet span function to apply to the matplotlib facetGrid</p>
+<p>Plots the 2 loop areas and the median dotted-line in gray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdbid</strong> (<em>str</em>) – pdbids column used as index in the dataframe</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – fluctuation values as column in the dataframe</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_loops.is_outlier">
 <code class="sig-prename descclassname">nats_dataprocess_loops.</code><code class="sig-name descname">is_outlier</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">thresh=3.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_loops.html#is_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_loops.is_outlier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a boolean array with True if points are outliers and False
-otherwise.
-Boris Iglewicz and David Hoaglin (1993), “Volume 16: How to Detect and
+otherwise.</p>
+<p>Boris Iglewicz and David Hoaglin (1993), “Volume 16: How to Detect and
 Handle Outliers”, The ASQC Basic References in Quality Control:
-Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.
-:param points: An numobservations by numdimensions array of observations
-:param thresh: The modified z-score to use as a threshold. Observations with
+Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> – An numobservations by numdimensions array of observations</p></li>
+<li><p><strong>thresh</strong> – The modified z-score to use as a threshold. Observations with
 a modified z-score (based on the median absolute deviation) greater
-than this value will be classified as outliers.
-:return: A numobservations-length boolean array.</p>
+than this value will be classified as outliers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numobservations-length boolean array.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_loops.read_pdb_loops">
 <code class="sig-prename descclassname">nats_dataprocess_loops.</code><code class="sig-name descname">read_pdb_loops</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_loops.html#read_pdb_loops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_loops.read_pdb_loops" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reading loop locations for the different 7 protein structures.
-Reads pdb_loops.txt file from ../data/input/etc containing simple data obtained from pdb structures.
-:return: Dictionary. Keys: structure pdb id (str), Values: loop 1 start (int), loop 1 end (int),
-loop 2 start (int), loop 2 end (int)
-:rtype: dict</p>
+<dd><p>Reading loop locations for the different 7 protein structures.</p>
+<p>Reads pdb_loops.txt file from ../data/input/etc containing simple data obtained from pdb structures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id (str), Values: loop 1 start (int), loop 1 end (int),
+loop 2 start (int), loop 2 end (int)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_loops.read_pdb_starts">
 <code class="sig-prename descclassname">nats_dataprocess_loops.</code><code class="sig-name descname">read_pdb_starts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_loops.html#read_pdb_starts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_loops.read_pdb_starts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
-:return: Dictionary. Keys: structure pdb id (str), Values: starting index (ind)
-:rtype: dict</p>
+<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id (str), Values: starting index (ind)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

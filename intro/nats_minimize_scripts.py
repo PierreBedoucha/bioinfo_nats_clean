@@ -1,50 +1,47 @@
 import Bio.PDB
 import os
 
-"""
-This script handles the creation of a collection of shell scripts for file transfer to run minimization steps
-on server (doggpil). It quickly inputs the selected structure files (pdb) from the current directory.
+"""Charmm scripts for dataset structure minimization
+
+    This script handles the creation of a collection of shell scripts for file transfer to run minimization steps
+    on server (doggpil).
+     
+    It inputs the selected structure files (pdb) from the current directory.
 """
 
 
-def read_pdb_starts():
+def read_pdb_bounds():
+    """Reads at which index each pdb sequence is starting and ending
+
+    from the pdb_starts.txt and pdb_ends.txt files from ../data/input/etc
+
+    :return: Tuple. Dictionaries. Keys: structure pdb id, Values: starting or ending index
+    :rtype: Tuple
     """
-    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
-    :return: Dictionary. Keys: structure pdb id, Values: starting index
-    :rtype: dict
-    """
-    file_path = os.path.join("../data/input/etc", "pdb_starts.txt")
+    file_path_start = os.path.join("../data/input/etc", "pdb_starts.txt")
+    file_path_end = os.path.join("../data/input/etc", "pdb_starts.txt")
     pdb_starts_dict = {}
-    with open(file_path) as f1_start:
-        for line_start in f1_start:
+    pdb_ends_dict = {}
+    with open(file_path_start) as f1_start, open(file_path_end) as f1_end:
+        for line_start, line_end in zip(f1_start, f1_end):
             if not line_start.startswith("#") and not line_start.startswith("\n"):
                 line_array = line_start.split(',')
                 pdb_starts_dict[line_start[0:4]] = int(line_array[1])
-    return pdb_starts_dict
-
-
-def read_pdb_ends():
-    """
-    Reads at which index each pdb sequence is starting from the pdb_ends.txt file from ../data/input/etc
-    :return: Dictionary. Keys: structure pdb id, Values: ending index
-    :rtype: dict
-    """
-    file_path = os.path.join("../data/input/etc", "pdb_ends.txt")
-    pdb_ends_dict = {}
-    with open(file_path) as f1_end:
-        for line_end in f1_end:
             if not line_end.startswith("#") and not line_end.startswith("\n"):
                 line_array = line_end.split(',')
                 pdb_ends_dict[line_end[0:4]] = int(line_array[1])
-    return pdb_ends_dict
+    return pdb_starts_dict, pdb_ends_dict
 
 
 def test_missing_res(filename, pdbfile_path):
-    """
-    Detects gaps in residue sequence numbers and split the structure pdb file in two different ones for further
-    handling withe minimization scripts (Charmm)
+    """Detects gaps in residue sequence numbers and split the structure pdb file in two different ones for further
+
+    handling with minimization scripts (Charmm)
+
     :param filename: Name for the pdb file being handled
+
     :param pdbfile_path: Path for the pdb file
+
     :return: Array of the wo split pdb file names
     :rtype: str[]
     """
@@ -138,13 +135,13 @@ if __name__ == '__main__':
                 for line in f1.readlines():
                     if line.startswith("set protein"):
                         line = "set protein {}\n".format(file.replace(".pdb", ""))
-                    if line.lower().startswith("read coor pdb") and read_pdb_starts()[file[0:4]] != 1:
-                        line = "read coor pdb unit 3 offset -{}\n".format(str(read_pdb_starts()[file[0:4]] - 1))
+                    if line.lower().startswith("read coor pdb") and read_pdb_bounds()[0][file[0:4]] != 1:
+                        line = "read coor pdb unit 3 offset -{}\n".format(str(read_pdb_bounds()[0][file[0:4]] - 1))
                     elif line.lower().startswith("read coor pdb"):
                         line = "read coor pdb unit 3\n"
                     if line.lower().startswith("cons fix sele resid 1:"):
-                        line = "cons fix sele resid 1:{} .and. -\n".format(str(read_pdb_ends()[file[0:4]] -
-                                                                               (read_pdb_starts()[file[0:4]] - 1)))
+                        line = "cons fix sele resid 1:{} .and. -\n".format(str(read_pdb_bounds()[1][file[0:4]] -
+                                                                               (read_pdb_bounds()[1][file[0:4]] - 1)))
                     line_list.append(line)
             with open("build_mini_{}.inp".format(file.replace(".pdb", "")), "w") as f2:
                 f2.writelines(line_list)
@@ -159,16 +156,16 @@ if __name__ == '__main__':
                             line = "set protein {}\n".format(file.replace("-a.pdb", ""))
                         if file.endswith("-a2.pdb"):
                             line = "set protein {}\n".format(file.replace("-a2.pdb", ""))
-                    if line.lower().startswith("read coor pdb unit 10") and read_pdb_starts()[file[0:4]] != 1:
-                        line = "read coor pdb unit 10 offset -{}\n".format(str(read_pdb_starts()[file[0:4]] - 1))
-                    if line.lower().startswith("read coor pdb unit 10") and read_pdb_starts()[file[0:4]] == 1:
+                    if line.lower().startswith("read coor pdb unit 10") and read_pdb_bounds()[0][file[0:4]] != 1:
+                        line = "read coor pdb unit 10 offset -{}\n".format(str(read_pdb_bounds()[0][file[0:4]] - 1))
+                    if line.lower().startswith("read coor pdb unit 10") and read_pdb_bounds()[0][file[0:4]] == 1:
                         line = "read coor pdb unit 10"
                     if line.lower().startswith("read coor pdb unit 11"):
                         line = "read coor pdb unit 11 offset -{}\n".format(str(start_stop_resid_dict[file[0:4]][1]
                                                                                - start_stop_resid_dict[file[0:4]][0]))
                     if line.lower().startswith("cons fix sele resid 1:"):
-                        line = "cons fix sele resid 1:{} .and. -\n".format(str(read_pdb_ends()[file[0:4]] -
-                                                                               (read_pdb_starts()[file[0:4]] - 1)))
+                        line = "cons fix sele resid 1:{} .and. -\n".format(str(read_pdb_bounds()[1][file[0:4]] -
+                                                                               (read_pdb_bounds()[0][file[0:4]] - 1)))
                     line_list.append(line)
             if file.endswith("-a.pdb"):
                 name = file.replace("-a.pdb", "")

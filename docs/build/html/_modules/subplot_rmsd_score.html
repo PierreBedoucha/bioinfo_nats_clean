@@ -31,7 +31,14 @@
           <div class="body" role="main">
             
   <h1>Source code for subplot_rmsd_score</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="sd">&quot;&quot;&quot;This script plots the lines benchmarking the energy score (pyROSETTA API) per structure</span>
+
+<span class="sd">    in the current directory and after their relaxation and per amplitudes of deformation.</span>
+
+<span class="sd">    The RMSD is overlaid as continuous color scale for each datapoint. The energy score is normalized per structure residue.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -42,17 +49,13 @@
 <span class="kn">import</span> <span class="nn">Bio.AlignIO</span> <span class="k">as</span> <span class="nn">al</span>
 <span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">preprocessing</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This script plots the lines benchmarking the energy score (pyROSETTA API) per structure </span>
-<span class="sd">in the current directory and after their relaxation and per amplitudes of deformation.</span>
-<span class="sd">The RMSD is overlaid as continuous color scale for each datapoint. The energy score is normalized per structure residue.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 
 <div class="viewcode-block" id="read_pfam_align"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.read_pfam_align">[docs]</a><span class="k">def</span> <span class="nf">read_pfam_align</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads multiple sequence alignment profile from pfam. It determines the envelope (start and end) of the GNAT fold</span>
+    <span class="sd">&quot;&quot;&quot;Reads multiple sequence alignment profile from pfam.</span>
+<span class="sd">    It determines the envelope (start and end) of the GNAT fold</span>
+
 <span class="sd">    Reads values from pfam_env.txt file in ../data/input/etc</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values:</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -66,8 +69,8 @@
 
 
 <div class="viewcode-block" id="read_pdb_starts"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.read_pdb_starts">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_starts</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+    <span class="sd">&quot;&quot;&quot;Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: starting index</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -82,9 +85,11 @@
 
 
 <div class="viewcode-block" id="read_msa_fasta"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.read_msa_fasta">[docs]</a><span class="k">def</span> <span class="nf">read_msa_fasta</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.</span>
+    <span class="sd">&quot;&quot;&quot;Reads multiple structure alignment from MUSTANG.</span>
+<span class="sd">    It determines the structurally aligned core of the proteins.</span>
+
 <span class="sd">    Note: here, only the aligned regions are of interest, gaps are removed.</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: aligned indices</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -105,14 +110,17 @@
 
 
 <div class="viewcode-block" id="compute_rmsd"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.compute_rmsd">[docs]</a><span class="k">def</span> <span class="nf">compute_rmsd</span><span class="p">(</span><span class="n">pdb_path1</span><span class="p">,</span> <span class="n">pdb_path2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes RMS distance between two pdb structures and only from start to end indices in their sequence</span>
+    <span class="sd">&quot;&quot;&quot;Computes RMS distance between two pdb structures and only from start to end indices in their sequence</span>
+
 <span class="sd">    :param pdb_path1: First pdb file name</span>
 <span class="sd">    :type pdb_path1: str</span>
+
 <span class="sd">    :param pdb_path2: First pdb file name</span>
 <span class="sd">    :type pdb_path2: str</span>
+
 <span class="sd">    :param kwargs: Keyword arguments with optional start and end in the pdb sequence instead of obtaining the</span>
-<span class="sd">    boundaries from reading the msa data.</span>
+<span class="sd">        boundaries from reading the msa data.</span>
+
 <span class="sd">    :return: Rmsd value between pdb structures</span>
 <span class="sd">    :rtype: float</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -149,10 +157,12 @@
 
 
 <div class="viewcode-block" id="calc_distance"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.calc_distance">[docs]</a><span class="k">def</span> <span class="nf">calc_distance</span><span class="p">(</span><span class="n">pdbfile_line_1</span><span class="p">,</span> <span class="n">pdbfile_line_2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calculate in line distance (Angstroms) between two atoms.</span>
+    <span class="sd">&quot;&quot;&quot;Calculate in line distance (Angstroms) between two atoms.</span>
+
 <span class="sd">    :param pdbfile_line_1: Str line for atom line in first pdb file</span>
+
 <span class="sd">    :param pdbfile_line_2: Str line for atom line in second pdb file</span>
+
 <span class="sd">    :return: Distance array from distance.cdist method</span>
 <span class="sd">    :rtype: float[][]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -171,11 +181,14 @@
 
 
 <div class="viewcode-block" id="f"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.f">[docs]</a><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Add annotation on seaborn plot</span>
+    <span class="sd">&quot;&quot;&quot;Add annotation on seaborn plot</span>
+
 <span class="sd">    :param x: x value for the annotation position on plot</span>
+
 <span class="sd">    :param y: y value for the annotation poistion on plot</span>
+
 <span class="sd">    :param z: Annotated value</span>
+
 <span class="sd">    :param kwargs: keyword arguments</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">pointplot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -188,10 +201,12 @@
 
 
 <div class="viewcode-block" id="facet_scatter"><a class="viewcode-back" href="../subplot_rmsd_score.html#subplot_rmsd_score.facet_scatter">[docs]</a><span class="k">def</span> <span class="nf">facet_scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Draw scatterplot with point colors from a faceted DataFrame columns.</span>
+    <span class="sd">&quot;&quot;&quot;Draw scatterplot with point colors from a faceted DataFrame columns.</span>
+
 <span class="sd">    :param x: x axis data</span>
+
 <span class="sd">    :param y: y axis data</span>
+
 <span class="sd">    :param kwargs: keyword arguments</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">)</span>

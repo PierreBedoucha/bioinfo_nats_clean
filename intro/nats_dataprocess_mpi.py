@@ -1,3 +1,13 @@
+"""Energy scoring of the NATSs protein models. MPI TEST
+
+    This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
+    The scoring function parameters are detailed in the _main function.
+
+    The structures are scored before and after a relaxation step done with the FastRelax algorithm.
+
+    The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
+"""
+
 from tempfile import mkstemp
 from shutil import move
 from os import fdopen, remove
@@ -10,19 +20,12 @@ from pyrosetta.mpi import mpi_init
 from PyRosetta_TACC_MPI import *
 from mpi4py import MPI
 
-"""
-MPI TEST
-This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
-The scoring function parameters are detailed in the _main function. The structures are scored before and
-after a relaxation step done with the FastRelax algorithm.
-The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
-"""
-
 
 def read_pdb_chains():
-    """
-    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in
-    ../data/input/etc.
+    """Read the selected chains for the protein dataset.
+
+    The data is parsed from pdb_chains.txt file in ../data/input/etc.
+
     :return: Dictionary. Keys: structure pdb id, Values: selected chain letter
     :rtype: dict
     """
@@ -41,8 +44,10 @@ def read_pdb_chains():
 
 
 def score_proteins(pdb_filename):
-    """
-    Structure scoring function. Launches the main scoring function on global number of replicates
+    """Structure scoring function.
+
+    Launches the main scoring function on global number of replicates
+
     :param pdb_filename: pdb file name
     """
     for _ in list(range(1, nb_of_repeats + 1, 1)):
@@ -50,8 +55,8 @@ def score_proteins(pdb_filename):
 
 
 def pdb_occupancy():
-    """
-    Cleans the pdb files in the current directory by quickly replacing with its fixed version and launches the scoring.
+    """Cleans the pdb files in the current directory by quickly replacing with its fixed version and launches the scoring.
+
     Each cleaned pdb filename is appended to a list to later log the data.
     """
     import os
@@ -97,10 +102,13 @@ nb_of_repeats = 1
 
 
 def _main(start_pdb):
-    """
-    Main structure scoring function. Describes the scoring parameters and set the values of two global lists containing
+    """Main structure scoring function.
+
+    Describes the scoring parameters and set the values of two global lists containing
     the initial score before relaxation on one hand, and the final score after relaxation on the other.
+
     Handles the MPI job for each submitted pose.
+
     :param pdb_filename: pdb file name
     """
     out_pdb = start_pdb

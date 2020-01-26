@@ -1,3 +1,12 @@
+"""Energy scoring of the NATSs protein models. MULTIPROCESS
+
+    This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
+    The scoring function parameters are detailed in the score_proteins function. The structures are scored before and
+    after a relaxation step done with the FastRelax algorithm.
+
+    The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
+"""
+
 from tempfile import mkstemp
 from shutil import move
 from os import fdopen, remove
@@ -10,19 +19,12 @@ import multiprocessing as mp
 from functools import partial
 import psutil
 
-"""
-MULTIPROCESS
-This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
-The scoring function parameters are detailed in the score_proteins function. The structures are scored before and
-after a relaxation step done with the FastRelax algorithm.
-The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
-"""
-
 
 def read_pdb_chains():
-    """
-    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in
-    ../data/input/etc.
+    """Read the selected chains for the protein dataset.
+
+    The data is parsed from pdb_chains.txt file in ../data/input/etc.
+
     :return: Dictionary. Keys: structure pdb id, Values: selected chain letter
     :rtype: dict
     """
@@ -40,28 +42,12 @@ def read_pdb_chains():
     return pdb_chains_dict
 
 
-rosetta_options = ["-ignore_unrecognized_res false",
-                   "-ex1",
-                   "-ex2",
-                   "-ex1aro",
-                   "-ex2aro",
-                   "-use_input_sc",
-                   "-flip_HNQ",
-                   "-no_optH false",
-                   "-relax:constrain_relax_to_start_coords",
-                   # "-relax:coord_constrain_sidechains",
-                   "-relax:ramp_constraints false",
-                   "-constant_seed",
-                   "-no_his_his_pairE",
-                   # "-linmem_ig 10",
-                   "-nblist_autoupdate true",
-                   "-relax:coord_cst_stdev 0.5"]
-
-
 def score_proteins(matches, pdb_filename):
-    """
-    Base structure scoring function. Here only the relaxation with FastRelax algorithm is performed and the
-    relaxed pose is scored and passed through the mp channel to handle replicates.
+    """Base structure scoring function.
+
+    Here only the relaxation with FastRelax algorithm is performed and the relaxed pose is scored and passed through
+    the mp channel to handle replicates.
+
     :param matches: shared list (channel)
     :param pdb_filename: pdb file name
     """
@@ -79,8 +65,8 @@ def score_proteins(matches, pdb_filename):
 
 
 def pdb_occupancy():
-    """
-    Cleans the pdb files in the current directory by quickly replacing with its fixed version.
+    """Cleans the pdb files in the current directory by quickly replacing with its fixed version.
+
     Each cleaned pdb filename is appended to a list to later log the data.
     """
     import os
@@ -123,6 +109,22 @@ def pdb_occupancy():
 
 
 # Global variables
+rosetta_options = ["-ignore_unrecognized_res false",
+                   "-ex1",
+                   "-ex2",
+                   "-ex1aro",
+                   "-ex2aro",
+                   "-use_input_sc",
+                   "-flip_HNQ",
+                   "-no_optH false",
+                   "-relax:constrain_relax_to_start_coords",
+                   # "-relax:coord_constrain_sidechains",
+                   "-relax:ramp_constraints false",
+                   "-constant_seed",
+                   "-no_his_his_pairE",
+                   # "-linmem_ig 10",
+                   "-nblist_autoupdate true",
+                   "-relax:coord_cst_stdev 0.5"]
 pdbfile_list = []
 score_init_list = []
 score_relax_list = []

@@ -32,21 +32,37 @@
             
   <div class="section" id="module-nats_plot_residue_score">
 <span id="nats-plot-residue-score-module"></span><h1>nats_plot_residue_score module<a class="headerlink" href="#module-nats_plot_residue_score" title="Permalink to this headline">¶</a></h1>
+<p>This script plot the energy score (from pyROSETTA API) over all the structure files and per aligned residues.</p>
+<p>The structures scores are listed in the relaxed pdb files and the script will isolate it for all the residues.</p>
+<p>The final results is summed through all the current directory structure files.</p>
 <dl class="function">
 <dt id="nats_plot_residue_score.read_msa_fasta">
 <code class="sig-prename descclassname">nats_plot_residue_score.</code><code class="sig-name descname">read_msa_fasta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_plot_residue_score.html#read_msa_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_plot_residue_score.read_msa_fasta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
-Note: here, only the aligned regions are of interest, gaps are removed.
-:return: Dictionary. Keys: structure pdb id, Values: aligned indices
-:rtype: dict</p>
+<dd><p>Reads multiple structure alignment from MUSTANG.
+It determines the structurally aligned core of the proteins.</p>
+<p>Note: here, only the aligned regions are of interest, gaps are removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: aligned indices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_plot_residue_score.read_pdb_starts">
 <code class="sig-prename descclassname">nats_plot_residue_score.</code><code class="sig-name descname">read_pdb_starts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_plot_residue_score.html#read_pdb_starts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_plot_residue_score.read_pdb_starts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
-:return: Dictionary. Keys: structure pdb id, Values: starting index
-:rtype: dict</p>
+<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: starting index</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

@@ -32,44 +32,76 @@
             
   <div class="section" id="module-nats_dataprocess_neighbors">
 <span id="nats-dataprocess-neighbors-module"></span><h1>nats_dataprocess_neighbors module<a class="headerlink" href="#module-nats_dataprocess_neighbors" title="Permalink to this headline">¶</a></h1>
+<p>Analysis for active sites neigbors in NATs</p>
+<p>This script summarizes the energy score of specific residues in the available structures (relaxed pdb file)
+in the current directory.
+The structures scores are listed in the relaxed pdb files and the script will isolate only the resiudes neighbouring
+the catalytic sites. The resulting score is summed over this selection.</p>
+<p>The resulting data is logged in a csv file ‘pyrosetta_out.csv’ for further analyses.</p>
 <dl class="function">
 <dt id="nats_dataprocess_neighbors.neighbor_res_select">
 <code class="sig-prename descclassname">nats_dataprocess_neighbors.</code><code class="sig-name descname">neighbor_res_select</code><span class="sig-paren">(</span><em class="sig-param">pdbfilename</em>, <em class="sig-param">sel_chain</em>, <em class="sig-param">cutoff</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_neighbors.html#neighbor_res_select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_neighbors.neighbor_res_select" title="Permalink to this definition">¶</a></dt>
-<dd><p>Selection of the catalytic residue neighbours from the structure pdb files. It uses NeighborSearch method from
-BioPDB. All the detected residues indices are returned in a list.
-:param pdbfilename: Pdb file name
-:type pdbfilename: str
-:param sel_chain: Identification letter of the structure chain
-:type sel_chain: str
-:param cutoff: Cutoff value in Angstroms for neighbouring search
-:type cutoff: float
-:return: List of detected residue indices
-:rtype: list</p>
+<dd><p>Selection of the catalytic residue neighbours from the structure pdb files.</p>
+<p>It uses NeighborSearch method from BioPDB. All the detected residues indices are returned in a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdbfilename</strong> (<em>str</em>) – Pdb file name</p></li>
+<li><p><strong>sel_chain</strong> (<em>str</em>) – Identification letter of the structure chain</p></li>
+<li><p><strong>cutoff</strong> (<em>float</em>) – Cutoff value in Angstroms for neighbouring search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of detected residue indices</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_neighbors.read_msa_fasta">
 <code class="sig-prename descclassname">nats_dataprocess_neighbors.</code><code class="sig-name descname">read_msa_fasta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_neighbors.html#read_msa_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_neighbors.read_msa_fasta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
-Note: here, only the aligned regions are of interest, gaps are removed.
-:return: Dictionary. Keys: structure pdb id, Values: aligned indices
-:rtype: dict</p>
+<dd><p>Reads multiple structure alignment from MUSTANG.</p>
+<p>It determines the structurally aligned core of the proteins.
+Note: here, only the aligned regions are of interest, gaps are removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: aligned indices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_neighbors.read_pdb_catalytic">
 <code class="sig-prename descclassname">nats_dataprocess_neighbors.</code><code class="sig-name descname">read_pdb_catalytic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_neighbors.html#read_pdb_catalytic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_neighbors.read_pdb_catalytic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the list of catalytic residues listed in pdb_catalytic.txt file in ../data/input/etc
-:return: Dictionary. Keys: structure pdb id, Values: catalytic residue index
-:rtype: dict</p>
+<dd><p>Reads the list of catalytic residues listed in pdb_catalytic.txt file in ../data/input/etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: catalytic residue index</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_neighbors.read_pdb_starts">
 <code class="sig-prename descclassname">nats_dataprocess_neighbors.</code><code class="sig-name descname">read_pdb_starts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_neighbors.html#read_pdb_starts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_neighbors.read_pdb_starts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
-:return: Dictionary. Keys: structure pdb id, Values: starting index
-:rtype: dict</p>
+<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: starting index</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

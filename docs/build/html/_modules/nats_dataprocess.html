@@ -31,7 +31,17 @@
           <div class="body" role="main">
             
   <h1>Source code for nats_dataprocess</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span></span><span class="sd">&quot;&quot;&quot;Energy scoring of the NATSs protein models</span>
+
+<span class="sd">    This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
+
+<span class="sd">    The scoring function parameters are detailed in the score_proteins function. The structures are scored before and</span>
+<span class="sd">    after a relaxation step done with the FastRelax algorithm.</span>
+
+<span class="sd">    The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
 <span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">move</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">fdopen</span><span class="p">,</span> <span class="n">remove</span>
 <span class="kn">from</span> <span class="nn">pyrosetta</span> <span class="k">import</span> <span class="o">*</span>
@@ -40,18 +50,12 @@
 <span class="kn">from</span> <span class="nn">rosetta.core.pose</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">rosetta.protocols.constraint_movers</span> <span class="k">import</span> <span class="o">*</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
-<span class="sd">The scoring function parameters are detailed in the score_proteins function. The structures are scored before and</span>
-<span class="sd">after a relaxation step done with the FastRelax algorithm.</span>
-<span class="sd">The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 
 <div class="viewcode-block" id="read_pdb_chains"><a class="viewcode-back" href="../nats_dataprocess.html#nats_dataprocess.read_pdb_chains">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_chains</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in</span>
-<span class="sd">    ../data/input/etc.</span>
+    <span class="sd">&quot;&quot;&quot;Read the selected chains for the protein dataset.</span>
+
+<span class="sd">    The data is parsed from pdb_chains.txt file in ../data/input/etc.</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: selected chain letter</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -70,9 +74,11 @@
 
 
 <div class="viewcode-block" id="score_proteins"><a class="viewcode-back" href="../nats_dataprocess.html#nats_dataprocess.score_proteins">[docs]</a><span class="k">def</span> <span class="nf">score_proteins</span><span class="p">(</span><span class="n">pdb_filename</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Main structure scoring function. Describes the scoring parameters and set the values of two global lists containing</span>
+    <span class="sd">&quot;&quot;&quot;Main structure scoring function.</span>
+
+<span class="sd">    Describes the scoring parameters and set the values of two global lists containing</span>
 <span class="sd">    the initial score before relaxation on one hand, and the final score after relaxation on the other.</span>
+
 <span class="sd">    :param pdb_filename: pdb file name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">init</span><span class="p">(</span><span class="n">extra_options</span><span class="o">=</span><span class="s2">&quot;-constant_seed&quot;</span><span class="p">)</span>
@@ -140,10 +146,12 @@
 
 
 <div class="viewcode-block" id="replace"><a class="viewcode-back" href="../nats_dataprocess.html#nats_dataprocess.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">subst</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Small helper function to replace a str pattern by another one in a given file.</span>
+    <span class="sd">&quot;&quot;&quot;Small helper function to replace a str pattern by another one in a given file.</span>
+
 <span class="sd">    :param file_path: File path of the file to consider</span>
+
 <span class="sd">    :param pattern: str pattern to replace</span>
+
 <span class="sd">    :param subst: str pattern for replacing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Create temp file</span>
@@ -159,8 +167,8 @@
 
 
 <div class="viewcode-block" id="pdb_occupancy"><a class="viewcode-back" href="../nats_dataprocess.html#nats_dataprocess.pdb_occupancy">[docs]</a><span class="k">def</span> <span class="nf">pdb_occupancy</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Cleans the pdb files in the current directory by quickly replacing its fixed version and launches the scoring</span>
+    <span class="sd">&quot;&quot;&quot;Cleans the pdb files in the current directory by quickly replacing its fixed version and launches the scoring</span>
+
 <span class="sd">    Each cleaned pdb filename is appended to a list to later log the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">os</span>

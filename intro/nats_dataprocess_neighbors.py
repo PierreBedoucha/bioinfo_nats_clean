@@ -1,21 +1,25 @@
+"""Analysis for active sites neigbors in NATs
+
+    This script summarizes the energy score of specific residues in the available structures (relaxed pdb file)
+    in the current directory.
+    The structures scores are listed in the relaxed pdb files and the script will isolate only the resiudes neighbouring
+    the catalytic sites. The resulting score is summed over this selection.
+
+    The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
+"""
+
 import Bio.PDB
 import Bio.AlignIO as al
 import pandas as pd
 import os
 
-"""
-This script summarizes the energy score of specific residues in the available structures (relaxed pdb file) 
-in the current directory.
-The structures scores are listed in the relaxed pdb files and the script will isolate only the the resiudes neighbouring
-the catalytic sites. The resulting score is summed over this selection.
-The resulting data is logged in a csv file 'pyrosetta_out.csv' for further analyses.
-"""
-
 
 def read_msa_fasta():
-    """
-    Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
+    """Reads multiple structure alignment from MUSTANG.
+
+    It determines the structurally aligned core of the proteins.
     Note: here, only the aligned regions are of interest, gaps are removed.
+
     :return: Dictionary. Keys: structure pdb id, Values: aligned indices
     :rtype: dict
     """
@@ -36,8 +40,8 @@ def read_msa_fasta():
 
 
 def read_pdb_starts():
-    """
-    Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
+    """Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
+
     :return: Dictionary. Keys: structure pdb id, Values: starting index
     :rtype: dict
     """
@@ -52,8 +56,8 @@ def read_pdb_starts():
 
 
 def read_pdb_catalytic():
-    """
-    Reads the list of catalytic residues listed in pdb_catalytic.txt file in ../data/input/etc
+    """Reads the list of catalytic residues listed in pdb_catalytic.txt file in ../data/input/etc
+
     :return: Dictionary. Keys: structure pdb id, Values: catalytic residue index
     :rtype: dict
     """
@@ -72,15 +76,19 @@ def read_pdb_catalytic():
 
 
 def neighbor_res_select(pdbfilename, sel_chain, cutoff):
-    """
-    Selection of the catalytic residue neighbours from the structure pdb files. It uses NeighborSearch method from
-    BioPDB. All the detected residues indices are returned in a list.
+    """Selection of the catalytic residue neighbours from the structure pdb files.
+
+    It uses NeighborSearch method from BioPDB. All the detected residues indices are returned in a list.
+
     :param pdbfilename: Pdb file name
     :type pdbfilename: str
+
     :param sel_chain: Identification letter of the structure chain
     :type sel_chain: str
+
     :param cutoff: Cutoff value in Angstroms for neighbouring search
     :type cutoff: float
+
     :return: List of detected residue indices
     :rtype: list
     """

@@ -31,7 +31,17 @@
           <div class="body" role="main">
             
   <h1>Source code for nats_dataprocess_mpi</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span></span><span class="sd">&quot;&quot;&quot;Energy scoring of the NATSs protein models. MPI TEST</span>
+
+<span class="sd">    This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
+<span class="sd">    The scoring function parameters are detailed in the _main function.</span>
+
+<span class="sd">    The structures are scored before and after a relaxation step done with the FastRelax algorithm.</span>
+
+<span class="sd">    The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
 <span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">move</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">fdopen</span><span class="p">,</span> <span class="n">remove</span>
 <span class="kn">from</span> <span class="nn">pyrosetta</span> <span class="k">import</span> <span class="o">*</span>
@@ -43,19 +53,12 @@
 <span class="kn">from</span> <span class="nn">PyRosetta_TACC_MPI</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">MPI TEST</span>
-<span class="sd">This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
-<span class="sd">The scoring function parameters are detailed in the _main function. The structures are scored before and</span>
-<span class="sd">after a relaxation step done with the FastRelax algorithm.</span>
-<span class="sd">The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 
 <div class="viewcode-block" id="read_pdb_chains"><a class="viewcode-back" href="../nats_dataprocess_mpi.html#nats_dataprocess_mpi.read_pdb_chains">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_chains</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in</span>
-<span class="sd">    ../data/input/etc.</span>
+    <span class="sd">&quot;&quot;&quot;Read the selected chains for the protein dataset.</span>
+
+<span class="sd">    The data is parsed from pdb_chains.txt file in ../data/input/etc.</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: selected chain letter</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -74,8 +77,10 @@
 
 
 <div class="viewcode-block" id="score_proteins"><a class="viewcode-back" href="../nats_dataprocess_mpi.html#nats_dataprocess_mpi.score_proteins">[docs]</a><span class="k">def</span> <span class="nf">score_proteins</span><span class="p">(</span><span class="n">pdb_filename</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Structure scoring function. Launches the main scoring function on global number of replicates</span>
+    <span class="sd">&quot;&quot;&quot;Structure scoring function.</span>
+
+<span class="sd">    Launches the main scoring function on global number of replicates</span>
+
 <span class="sd">    :param pdb_filename: pdb file name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_of_repeats</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
@@ -83,8 +88,8 @@
 
 
 <div class="viewcode-block" id="pdb_occupancy"><a class="viewcode-back" href="../nats_dataprocess_mpi.html#nats_dataprocess_mpi.pdb_occupancy">[docs]</a><span class="k">def</span> <span class="nf">pdb_occupancy</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Cleans the pdb files in the current directory by quickly replacing with its fixed version and launches the scoring.</span>
+    <span class="sd">&quot;&quot;&quot;Cleans the pdb files in the current directory by quickly replacing with its fixed version and launches the scoring.</span>
+
 <span class="sd">    Each cleaned pdb filename is appended to a list to later log the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">os</span>
@@ -130,10 +135,13 @@
 
 
 <span class="k">def</span> <span class="nf">_main</span><span class="p">(</span><span class="n">start_pdb</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Main structure scoring function. Describes the scoring parameters and set the values of two global lists containing</span>
+    <span class="sd">&quot;&quot;&quot;Main structure scoring function.</span>
+
+<span class="sd">    Describes the scoring parameters and set the values of two global lists containing</span>
 <span class="sd">    the initial score before relaxation on one hand, and the final score after relaxation on the other.</span>
+
 <span class="sd">    Handles the MPI job for each submitted pose.</span>
+
 <span class="sd">    :param pdb_filename: pdb file name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_pdb</span> <span class="o">=</span> <span class="n">start_pdb</span>

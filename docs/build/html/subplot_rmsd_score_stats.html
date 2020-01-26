@@ -32,38 +32,63 @@
             
   <div class="section" id="module-subplot_rmsd_score_stats">
 <span id="subplot-rmsd-score-stats-module"></span><h1>subplot_rmsd_score_stats module<a class="headerlink" href="#module-subplot_rmsd_score_stats" title="Permalink to this headline">¶</a></h1>
+<p>This script handles PROCHECK analyses for the structure files in current directory.</p>
+<p>Be careful, reference pdb files (amplitude 0.00 for both native and relaxed structures) are needed for comparison.</p>
+<p>The PROCHECK files are created and placed in the current directory for later use.</p>
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.calc_distance">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">calc_distance</code><span class="sig-paren">(</span><em class="sig-param">pdbfile_line_1</em>, <em class="sig-param">pdbfile_line_2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#calc_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.calc_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate in line distance (Angstroms) between two atoms.
-:param pdbfile_line_1: Str line for atom line in first pdb file
-:param pdbfile_line_2: Str line for atom line in second pdb file
-:return: Distance array from distance.cdist method
-:rtype: float[][]</p>
+<dd><p>Calculate in line distance (Angstroms) between two atoms.</p>
+<p>param pdbfile_line_1: Str line for atom line in first pdb file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pdbfile_line_2</strong> – Str line for atom line in second pdb file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Distance array from distance.cdist method</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float[][]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.compute_rmsd">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">compute_rmsd</code><span class="sig-paren">(</span><em class="sig-param">pdb_path1</em>, <em class="sig-param">pdb_path2</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#compute_rmsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.compute_rmsd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes RMS distance between two pdb structures and only from start to end indices in their sequence
-:param pdb_path1: First pdb file name
-:type pdb_path1: str
-:param pdb_path2: First pdb file name
-:type pdb_path2: str
-:param kwargs: Keyword arguments with optional start and end in the pdb sequence instead of obtaining the
-boundaries from reading the msa data.
-:return: Rmsd value between pdb structures
-:rtype: float</p>
+<dd><p>Computes RMS distance between two pdb structures and only from start to end indices in their sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdb_path1</strong> (<em>str</em>) – First pdb file name</p></li>
+<li><p><strong>pdb_path2</strong> (<em>str</em>) – First pdb file name</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments with optional start and end in the pdb sequence instead of obtaining the
+boundaries from reading the msa data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Rmsd value between pdb structures</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.f">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">f</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.f" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add annotation on seaborn plot
-:param x: x value for the annotation position on plot
-:param y: y value for the annotation poistion on plot
-:param z: Annotated value
-:param kwargs: keyword arguments</p>
+<dd><p>Add annotation on seaborn plot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – x value for the annotation position on plot</p></li>
+<li><p><strong>y</strong> – y value for the annotation poistion on plot</p></li>
+<li><p><strong>z</strong> – Annotated value</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -75,63 +100,112 @@ boundaries from reading the msa data.
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.facet_scatter">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">facet_scatter</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">c</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#facet_scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.facet_scatter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draw scatterplot with point colors from a faceted DataFrame columns.
-:param x: x axis data
-:param y: y axis data
-:param kwargs: keyword arguments</p>
+<dd><p>Draw scatterplot with point colors from a faceted DataFrame columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – x axis data</p></li>
+<li><p><strong>y</strong> – y axis data</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.facet_stairs">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">facet_stairs</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#facet_stairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.facet_stairs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draw scatterplot with point colors from a faceted DataFrame columns.
-:param x: x axis data
-:param y: y axis data
-:param kwargs: keyword arguments</p>
+<dd><p>Draw scatterplot with point colors from a faceted DataFrame columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – x axis data</p></li>
+<li><p><strong>y</strong> – y axis data</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.procheck">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">procheck</code><span class="sig-paren">(</span><em class="sig-param">sc_pdbpath</em>, <em class="sig-param">pdb_resolution</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#procheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.procheck" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main PROCHECK computation function. The full atom (sc) structure pb file is required as well as its corresponding
-resolution (Angstroms). All the resulting files are created in the current directory for later use.
-:param sc_pdbpath: Full atom pdb file path
-:type sc_pdbpath: str
-:param pdb_resolution: Resolution of the structure (Angstroms)
-:type pdb_resolution: float
-:return: Dictionary. Keys: PROCHECK measurement types, Values: measures
-:rtype: dict</p>
+resolution (Angstroms). All the resulting files are created in the current directory for later use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sc_pdbpath</strong> (<em>str</em>) – Full atom pdb file path</p></li>
+<li><p><strong>pdb_resolution</strong> (<em>float</em>) – Resolution of the structure (Angstroms)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary. Keys: PROCHECK measurement types, Values: measures</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.read_msa_fasta">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">read_msa_fasta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#read_msa_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.read_msa_fasta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads multiple structure alignment from MUSTANG. It determines the structurally aligned core of the proteins.
-Note: here, only the aligned regions are of interest, gaps are removed.
-:return: Dictionary. Keys: structure pdb id, Values: aligned indices
-:rtype: dict</p>
+<dd><p>Reads multiple structure alignment from MUSTANG.
+It determines the structurally aligned core of the proteins.</p>
+<p>Note: here, only the aligned regions are of interest, gaps are removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: aligned indices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.read_pdb_resolution">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">read_pdb_resolution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#read_pdb_resolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.read_pdb_resolution" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reads the resolution from data for the pdb files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: resolution (float)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.read_pdb_starts">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">read_pdb_starts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#read_pdb_starts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.read_pdb_starts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc
-:return: Dictionary. Keys: structure pdb id, Values: starting index
-:rtype: dict</p>
+<dd><p>Reads at which index each pdb sequence is starting from the pdb_starts.txt file from ../data/input/etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: starting index</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="subplot_rmsd_score_stats.read_pfam_align">
 <code class="sig-prename descclassname">subplot_rmsd_score_stats.</code><code class="sig-name descname">read_pfam_align</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/subplot_rmsd_score_stats.html#read_pfam_align"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#subplot_rmsd_score_stats.read_pfam_align" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads multiple sequence alignment profile from pfam. It determines the envelope (start and end) of the GNAT fold
-Reads values from pfam_env.txt file in ../data/input/etc
-:return: Dictionary. Keys: structure pdb id, Values:
-:rtype: dict</p>
+<dd><p>Reads multiple sequence alignment profile from pfam.</p>
+<p>It determines the envelope (start and end) of the GNAT fold</p>
+<p>Reads values from pfam_env.txt file in ../data/input/etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: envelope indices (tuple)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

@@ -31,7 +31,16 @@
           <div class="body" role="main">
             
   <h1>Source code for nats_dataprocess_multiprocess</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span></span><span class="sd">&quot;&quot;&quot;Energy scoring of the NATSs protein models. MULTIPROCESS</span>
+
+<span class="sd">    This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
+<span class="sd">    The scoring function parameters are detailed in the score_proteins function. The structures are scored before and</span>
+<span class="sd">    after a relaxation step done with the FastRelax algorithm.</span>
+
+<span class="sd">    The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
 <span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">move</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">fdopen</span><span class="p">,</span> <span class="n">remove</span>
 <span class="kn">from</span> <span class="nn">pyrosetta</span> <span class="k">import</span> <span class="o">*</span>
@@ -43,19 +52,12 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">MULTIPROCESS</span>
-<span class="sd">This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API</span>
-<span class="sd">The scoring function parameters are detailed in the score_proteins function. The structures are scored before and</span>
-<span class="sd">after a relaxation step done with the FastRelax algorithm.</span>
-<span class="sd">The resulting data is logged in a csv file &#39;pyrosetta_out.csv&#39; for further analyses.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 
 <div class="viewcode-block" id="read_pdb_chains"><a class="viewcode-back" href="../nats_dataprocess_multiprocess.html#nats_dataprocess_multiprocess.read_pdb_chains">[docs]</a><span class="k">def</span> <span class="nf">read_pdb_chains</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in</span>
-<span class="sd">    ../data/input/etc.</span>
+    <span class="sd">&quot;&quot;&quot;Read the selected chains for the protein dataset.</span>
+
+<span class="sd">    The data is parsed from pdb_chains.txt file in ../data/input/etc.</span>
+
 <span class="sd">    :return: Dictionary. Keys: structure pdb id, Values: selected chain letter</span>
 <span class="sd">    :rtype: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -73,28 +75,12 @@
     <span class="k">return</span> <span class="n">pdb_chains_dict</span></div>
 
 
-<span class="n">rosetta_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-ignore_unrecognized_res false&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-ex1&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-ex2&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-ex1aro&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-ex2aro&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-use_input_sc&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-flip_HNQ&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-no_optH false&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-relax:constrain_relax_to_start_coords&quot;</span><span class="p">,</span>
-                   <span class="c1"># &quot;-relax:coord_constrain_sidechains&quot;,</span>
-                   <span class="s2">&quot;-relax:ramp_constraints false&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-constant_seed&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-no_his_his_pairE&quot;</span><span class="p">,</span>
-                   <span class="c1"># &quot;-linmem_ig 10&quot;,</span>
-                   <span class="s2">&quot;-nblist_autoupdate true&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;-relax:coord_cst_stdev 0.5&quot;</span><span class="p">]</span>
-
-
 <div class="viewcode-block" id="score_proteins"><a class="viewcode-back" href="../nats_dataprocess_multiprocess.html#nats_dataprocess_multiprocess.score_proteins">[docs]</a><span class="k">def</span> <span class="nf">score_proteins</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">pdb_filename</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base structure scoring function. Here only the relaxation with FastRelax algorithm is performed and the</span>
-<span class="sd">    relaxed pose is scored and passed through the mp channel to handle replicates.</span>
+    <span class="sd">&quot;&quot;&quot;Base structure scoring function.</span>
+
+<span class="sd">    Here only the relaxation with FastRelax algorithm is performed and the relaxed pose is scored and passed through</span>
+<span class="sd">    the mp channel to handle replicates.</span>
+
 <span class="sd">    :param matches: shared list (channel)</span>
 <span class="sd">    :param pdb_filename: pdb file name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -112,8 +98,8 @@
 
 
 <div class="viewcode-block" id="pdb_occupancy"><a class="viewcode-back" href="../nats_dataprocess_multiprocess.html#nats_dataprocess_multiprocess.pdb_occupancy">[docs]</a><span class="k">def</span> <span class="nf">pdb_occupancy</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Cleans the pdb files in the current directory by quickly replacing with its fixed version.</span>
+    <span class="sd">&quot;&quot;&quot;Cleans the pdb files in the current directory by quickly replacing with its fixed version.</span>
+
 <span class="sd">    Each cleaned pdb filename is appended to a list to later log the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">os</span>
@@ -156,6 +142,22 @@
 
 
 <span class="c1"># Global variables</span>
+<span class="n">rosetta_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-ignore_unrecognized_res false&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-ex1&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-ex2&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-ex1aro&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-ex2aro&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-use_input_sc&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-flip_HNQ&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-no_optH false&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-relax:constrain_relax_to_start_coords&quot;</span><span class="p">,</span>
+                   <span class="c1"># &quot;-relax:coord_constrain_sidechains&quot;,</span>
+                   <span class="s2">&quot;-relax:ramp_constraints false&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-constant_seed&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-no_his_his_pairE&quot;</span><span class="p">,</span>
+                   <span class="c1"># &quot;-linmem_ig 10&quot;,</span>
+                   <span class="s2">&quot;-nblist_autoupdate true&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;-relax:coord_cst_stdev 0.5&quot;</span><span class="p">]</span>
 <span class="n">pdbfile_list</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">score_init_list</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">score_relax_list</span> <span class="o">=</span> <span class="p">[]</span>

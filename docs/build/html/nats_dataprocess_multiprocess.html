@@ -32,29 +32,47 @@
             
   <div class="section" id="module-nats_dataprocess_multiprocess">
 <span id="nats-dataprocess-multiprocess-module"></span><h1>nats_dataprocess_multiprocess module<a class="headerlink" href="#module-nats_dataprocess_multiprocess" title="Permalink to this headline">¶</a></h1>
+<p>Energy scoring of the NATSs protein models. MULTIPROCESS</p>
+<p>This script computes the energy score of available structures (Pose object) in the current directory using pyROSETTA API
+The scoring function parameters are detailed in the score_proteins function. The structures are scored before and
+after a relaxation step done with the FastRelax algorithm.</p>
+<p>The resulting data is logged in a csv file ‘pyrosetta_out.csv’ for further analyses.</p>
 <dl class="function">
 <dt id="nats_dataprocess_multiprocess.pdb_occupancy">
 <code class="sig-prename descclassname">nats_dataprocess_multiprocess.</code><code class="sig-name descname">pdb_occupancy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_multiprocess.html#pdb_occupancy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_multiprocess.pdb_occupancy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cleans the pdb files in the current directory by quickly replacing with its fixed version.
-Each cleaned pdb filename is appended to a list to later log the data.</p>
+<dd><p>Cleans the pdb files in the current directory by quickly replacing with its fixed version.</p>
+<p>Each cleaned pdb filename is appended to a list to later log the data.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_multiprocess.read_pdb_chains">
 <code class="sig-prename descclassname">nats_dataprocess_multiprocess.</code><code class="sig-name descname">read_pdb_chains</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_multiprocess.html#read_pdb_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_multiprocess.read_pdb_chains" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the selected chains for the protein dataset. The data is parsed from pdb_chains.txt file in
-../data/input/etc.
-:return: Dictionary. Keys: structure pdb id, Values: selected chain letter
-:rtype: dict</p>
+<dd><p>Read the selected chains for the protein dataset.</p>
+<p>The data is parsed from pdb_chains.txt file in ../data/input/etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary. Keys: structure pdb id, Values: selected chain letter</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="nats_dataprocess_multiprocess.score_proteins">
 <code class="sig-prename descclassname">nats_dataprocess_multiprocess.</code><code class="sig-name descname">score_proteins</code><span class="sig-paren">(</span><em class="sig-param">matches</em>, <em class="sig-param">pdb_filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nats_dataprocess_multiprocess.html#score_proteins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nats_dataprocess_multiprocess.score_proteins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base structure scoring function. Here only the relaxation with FastRelax algorithm is performed and the
-relaxed pose is scored and passed through the mp channel to handle replicates.
-:param matches: shared list (channel)
-:param pdb_filename: pdb file name</p>
+<dd><p>Base structure scoring function.</p>
+<p>Here only the relaxation with FastRelax algorithm is performed and the relaxed pose is scored and passed through
+the mp channel to handle replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matches</strong> – shared list (channel)</p></li>
+<li><p><strong>pdb_filename</strong> – pdb file name</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
